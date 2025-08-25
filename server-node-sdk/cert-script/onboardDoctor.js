@@ -92,7 +92,7 @@ async function main() {
                     city: "Pune"
                 };  
 
-                const res = await contract.submitTransaction('onboardDoctor', JSON.stringify(args));
+                const res = await contract.submitTransaction('createDoctor', JSON.stringify(args));
                 console.log("/n === Onboard Doctor success === /n", res.toString());
         
                 // const result2 = await contract.evaluateTransaction('GetAllAssets');

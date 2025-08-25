@@ -25,6 +25,9 @@ const getQuery = async (fcn, args, userId) => {
     const wallet = await Wallets.newFileSystemWallet(walletPath);
     console.log(`Wallet path: ${walletPath}`);
 
+    console.log(`Using userId: ${userId} for query`); // Debugging log
+    console.log(`Function to call: ${fcn} with args: ${JSON.stringify(args)}`); // Debugging log
+
     // Check to see if we've already enrolled the user.
     const identity = await wallet.get(userId);
     if (!identity) {

@@ -5,140 +5,280 @@ const path = require('path');
 const FabricCAServices = require('fabric-ca-client');
 const { Wallets, Gateway } = require('fabric-network');
 
+// Role → Org mapping
+const roleToOrg = {
+    hospital: 'Org1',
+    diagnostics: 'Org1',
+    doctor: 'Org1',
+    pharmacy: 'Org1',
+    patient: 'Org1',
+    researcher: 'Org2',
+    'insuranceAgent': 'Org2',
+};
 
-const registerUser = async (adminID, doctorId, userID, userRole, args) => {
-    // const adminID = 'admin';
-    const orgID = 'Org1';
-    
-    const ccpPath = path.resolve(__dirname, '..', 'fabric-samples','test-network', 'organizations', 'peerOrganizations', `${orgID}.example.com`.toLowerCase(), `connection-${orgID}.json`.toLowerCase());
+// Org → Admin identity mapping
+const orgToAdminID = {
+    Org1: 'hospitalAdmin',
+    Org2: 'researchAdmin', // Default for Org2, overridden by enrollId where needed
+};
+
+/**
+ * Register a user with the CA (with attrs) and create their on-ledger profile via chaincode.
+ * @param {string|null} enrollId - Admin identity for CA registration and chaincode submission
+ * @param {string} userID - The new user ID to register/enroll in CA and wallet
+ * @param {string} userRole - One of keys in roleToOrg
+ * @param {object} args - Extra attributes for chaincode
+ */
+const registerUser = async (enrollId, userID, userRole, args) => {
+    const orgID = roleToOrg[userRole];
+    if (!orgID) {
+        throw new Error(`Invalid user role: ${userRole}. Please check roleToOrg mapping.`);
+    }
+
+    // Load CCP
+    const ccpPath = path.resolve(
+        __dirname,
+        '..',
+        'fabric-samples',
+        'test-network',
+        'organizations',
+        'peerOrganizations',
+        `${orgID}.example.com`.toLowerCase(),
+        `connection-${orgID}.json`.toLowerCase()
+    );
     const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
     const orgMSP = ccp.organizations[orgID].mspid;
 
-    // Create a new CA client for interacting with the CA.
-    const caOrg = ccp.organizations[orgID].certificateAuthorities[0]
+    // CA client
+    const caOrg = ccp.organizations[orgID].certificateAuthorities[0];
     const caURL = ccp.certificateAuthorities[caOrg].url;
     const ca = new FabricCAServices(caURL);
 
-    // Create a new file system based wallet for managing identities.
+    // Wallet
     const walletPath = path.join(process.cwd(), 'wallet');
     const wallet = await Wallets.newFileSystemWallet(walletPath);
     console.log(`Wallet path: ${walletPath}`);
 
-    // Check to see if we've already enrolled the user.
-    const userIdentity = await wallet.get(userID);
-    if (userIdentity) {
-        console.log(`An identity for the user ${userID} already exists in the wallet.`);
-        return {
-            statusCode: 200,
-            message: `${userID} has already been enrolled.`
-        };
+    // Check if identity exists
+    let existing = await wallet.get(userID);
+    if (existing) {
+        console.log(`⚠️ Identity for ${userID} already exists. If it was created without attrs, delete it and re-run.`);
     } else {
-        console.log(`An identity for the user ${userID} does not exist so creating one in the wallet.`);
-    }
-
-    // Check to see if we've already enrolled the admin user.
-    const adminIdentity = await wallet.get(adminID);
-    if (!adminIdentity) {
-        console.log(`An identity for the admin user ${adminID} does not exist in the wallet.`);
-        console.log('Run the enrollAdmin.js application before retrying.');
-        return {
-            statusCode: 200,
-            message: `An identity for the admin user does not exist in the wallet`
-        };
-    }
-
-    // build a user object for authenticating with the CA //Verify
-    const provider = wallet.getProviderRegistry().getProvider(adminIdentity.type);
-    const adminUser = await provider.getUserContext(adminIdentity, adminID);
-
-    // Register the user, enroll the user, and import the new identity into the wallet.
-    // if affiliation is specified by client, the affiliation value must be configured in CA
-    const secret = await ca.register({
-        affiliation: `${orgID}.department1`.toLowerCase(), //TODO: as per affiliation in config .${userRole}
-        enrollmentID: userID,
-        role: 'client',
-        attrs: [
-            {name: 'role', value: userRole, ecert: true},           
-            {name: 'uuid', value: userID, ecert: true},           
-        ]
-    }, adminUser);
-    const enrollment = await ca.enroll({
-        enrollmentID: userID,
-        enrollmentSecret: secret,
-        attr_reqs: [
-            {name: 'role', optional: false},          
-            {name: 'uuid', optional: false},          
-        ]
-    });
-    const x509Identity = {
-        credentials: {
-            certificate: enrollment.certificate,
-            privateKey: enrollment.key.toBytes(),
-        },
-        mspId: orgMSP,
-        type: 'X.509',
-    };
-    await wallet.put(userID, x509Identity);
-    console.log(`Successfully registered and enrolled user ${userID} and imported it into the wallet`);
-    
-     // Create a new gateway for connecting to our peer node.
-        const gateway = new Gateway();
-        await gateway.connect(ccp, { wallet, identity: doctorId, discovery: { enabled: true, asLocalhost: true } });
-
-        // Get the network (channel) our contract is deployed to.
-        const network = await gateway.getNetwork('mychannel');
-
-        // Get the contract from the network.
-        const contract = network.getContract('ehrChainCode');
-
-        const args01 = {
-            patientId:userID,
-            hospitalName: args.hospitalName,
-            name:args.name,
-            city:args.city
+        // Use admin identity for registration
+        const adminID = enrollId || orgToAdminID[orgID];
+        const adminIdentity = await wallet.get(adminID);
+        if (!adminIdentity) {
+            throw new Error(`Admin identity ${adminID} not found in wallet. Run enrollAdmin.js for ${orgID}`);
         }
 
-        const buffer = await contract.submitTransaction('onboardPatient', JSON.stringify(args01));
-        // Disconnect from the gateway.
-        gateway.disconnect();
+        const provider = wallet.getProviderRegistry().getProvider(adminIdentity.type);
+        const adminUser = await provider.getUserContext(adminIdentity, adminID);
+        console.log(`Using admin identity: ${adminID} (${orgID})`);
+        console.log(`Registering user ${userID} (${userRole}) in ${orgID}...`);
+
+        // Register & enroll new user with attrs
+        const secret = await ca.register(
+            {
+                affiliation: `${orgID.toLowerCase()}.department1`,
+                enrollmentID: userID,
+                role: 'client',
+                attrs: [
+                    { name: 'role', value: userRole, ecert: true },
+                    { name: 'uuid', value: userID, ecert: true },
+                ],
+            },
+            adminUser
+        );
+
+        const enrollment = await ca.enroll({
+            enrollmentID: userID,
+            enrollmentSecret: secret,
+            attr_reqs: [
+                { name: 'role', optional: false },
+                { name: 'uuid', optional: false },
+            ],
+        });
+
+        const x509Identity = {
+            credentials: {
+                certificate: enrollment.certificate,
+                privateKey: enrollment.key.toBytes(),
+            },
+            mspId: orgMSP,
+            type: 'X.509',
+        };
+        await wallet.put(userID, x509Identity);
+        console.log(`✅ Registered & enrolled user ${userID} (${userRole}) into ${orgID}`);
+    }
+
+    // Decide submitter identity
+    let submitterIdentity;
+    if (['doctor', 'diagnostics', 'pharmacy', 'patient'].includes(userRole.toLowerCase())) {
+        if (!args?.hospitalId) {
+            throw new Error(`${userRole} registration requires args.hospitalId`);
+        }
+        submitterIdentity = args.hospitalId; // Hospital creates doctor, diagnostic center, or pharma
+    } else if (userRole.toLowerCase() === 'researcher') {
+        submitterIdentity = 'researchAdmin'; // researchAdmin for researchers
+    } else if (userRole === 'insuranceAgent') {
+        console.log('Registering insurance agent, using insuranceAdmin as submitter');
+        submitterIdentity = 'insuranceAdmin'; // insuranceAdmin for insurance agents
+    } else {
+        submitterIdentity = userID; // Use userID for hospital, patient
+    }
+
+    // Sanity check
+    const submitter = await wallet.get(submitterIdentity);
+    if (!submitter) {
+        throw new Error(`Submitter identity ${submitterIdentity} not found in wallet. Ensure it is enrolled.`);
+    }
+
+    console.log(
+        `➡️ Submitting chaincode as ${submitterIdentity} for role=${userRole} (org=${orgID})`
+    );
+
+    // Connect gateway
+    const gateway = new Gateway();
+    await gateway.connect(ccp, {
+        wallet,
+        identity: submitterIdentity,
+        discovery: { enabled: true, asLocalhost: true },
+    });
+
+    const network = await gateway.getNetwork('mychannel');
+    const contract = network.getContract('ehrChainCode');
+
+    let buffer;
+    switch (userRole) {
+        case 'patient':
+            console.log(`Registering patient ${userID} with args: ${JSON.stringify(args)}`);
+            buffer = await contract.submitTransaction(
+                'registerPatient',
+                JSON.stringify({
+                    patientId: userID,
+                    name: args.name,
+                    dob: args.dob,
+                    hospitalId: args.hospitalId,
+                    city: args.city,
+                })
+            );
+            break;
+
+        case 'hospital':
+            buffer = await contract.submitTransaction(
+                'registerHospital',
+                JSON.stringify({
+                    hospitalId: userID,
+                    hospitalName: args.hospitalName,
+                    city: args.city,
+                })
+            );
+            break;
+
+        case 'doctor':
+            buffer = await contract.submitTransaction(
+                'createDoctor',
+                JSON.stringify({
+                    doctorId: userID,
+                    name: args.name,
+                    specialization: args.specialization,
+                    hospitalId: args.hospitalId,
+                    city: args.city,
+                })
+            );
+            break;
+
+        case 'diagnostics':
+            buffer = await contract.submitTransaction(
+                'createDiagnosticsCenter',
+                JSON.stringify({
+                    diagnosticsId: userID,
+                    name: args.name,
+                    city: args.city,
+                })
+            );
+            break;
+
+        case 'pharmacy':
+            buffer = await contract.submitTransaction(
+                'createPharmacy',
+                JSON.stringify({
+                    pharmacyId: userID,
+                    name: args.name,
+                    city: args.city,
+                    hospitalId: args.hospitalId
+                })
+            );
+            break;
+
+        case 'researcher':
+            buffer = await contract.submitTransaction(
+                'onboardResearcher',
+                JSON.stringify({
+                    researcherId: userID,
+                    name: args.name,
+                    institution: args.institution
+                })
+            );
+            break;
+
+        case 'insuranceAgent':
+            console.log('Creating insurance agent profile for user:', userID);
+            console.log(`Args: ${JSON.stringify(args)}`);
+            console.log('submitterIdentity:', submitterIdentity);
+            buffer = await contract.submitTransaction(
+                'onboardInsurance',
+                JSON.stringify({
+                    agentId: userID,
+                    insuranceCompany: args.insuranceCompany,
+                    name: args.name,
+                    city: args.city,
+                })
+            );
+            break;
+
+        default:
+            throw new Error(`Unhandled userRole: ${userRole}`);
+    }
+
+    gateway.disconnect();
 
     return {
         statusCode: 200,
-        userID: userID,
+        userID,
         role: userRole,
-        message: `${userID} registered and enrolled successfully.`,
-        chaincodeRes: buffer.toString()
+        submitter: submitterIdentity,
+        message: `${userID} (${userRole}) registered and on-chain profile created in ${orgID}.`,
+        chaincodeRes: buffer ? buffer.toString() : undefined,
     };
-}
+};
 
-const login = async (userID) => {
+const login = async (userID, userRole) => {
+    console.log(`Logging in user ${userID} with role ${userRole}...`);
+    const orgID = roleToOrg[userRole];
+    if (!orgID) throw new Error(`Invalid role: ${userRole}`);
 
-    const orgID = 'Org1';
+    const ccpPath = path.resolve(
+        __dirname,
+        '..',
+        'fabric-samples',
+        'test-network',
+        'organizations',
+        'peerOrganizations',
+        `${orgID}.example.com`.toLowerCase(),
+        `connection-${orgID}.json`.toLowerCase()
+    );
+    JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
 
-    const ccpPath = path.resolve(__dirname, '..', 'fabric-samples', 'test-network', 'organizations', 'peerOrganizations', `${orgID}.example.com`.toLowerCase(), `connection-${orgID}.json`.toLowerCase());
-    const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
-
-    // Create a new file system based wallet for managing identities.
     const walletPath = path.join(process.cwd(), 'wallet');
     const wallet = await Wallets.newFileSystemWallet(walletPath);
-    console.log(`Wallet path: ${walletPath}`);
-
-    // Check to see if we've already enrolled the user.
     const identity = await wallet.get(userID);
-    if (!identity) {
-        console.log(`An identity for the user ${userID} does not exist in the wallet`);
-        console.log('Run the registerUser.js application before retrying');
-        return {
-            statusCode: 200,
-            message: `An identity for the user ${userID} does not exist.`
-        };
-    } else {
-        return {
-            statusCode: 200,
-            userID: userID,           
-            message: `User login successful:: ${userID} .`
-        };
-    }
-}
 
-module.exports = {registerUser, login};
+    if (!identity) {
+        return { statusCode: 200, message: `Identity for ${userID} not found.` };
+    }
+
+    return { statusCode: 200, userID, message: `Login successful for ${userID} (${userRole})` };
+};
+
+module.exports = { registerUser, login };

@@ -105,3 +105,16 @@ $ ssh-add ~/ssh/github -->
   [ "recordType"="hospital", "createdBy"="hospitalId", data={ name="ABC Hosptial", address="acb location"  } ]
 
   [ "recordType"="physician", "createdBy"="physicianID", data={ name="ABC Hosptial", address="acb location"  } ]
+
+
+POST /insurance/register → Register insurance agent
+
+POST /insurance/issue → Agent issues policy to patient
+
+POST /patient/requestClaim → Patient submits a claim
+
+GET /insurance/claims/:insuranceId → Agent checks claims
+
+POST /insurance/approveClaim → Agent approves claim
+
+GET /patient/rewards/:patientId → Patient optionally checks rewards
