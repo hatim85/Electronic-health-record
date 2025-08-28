@@ -3,9 +3,10 @@ import { uploadLabReport } from "../../services/diagnosticsService";
 
 export default function UploadLabReport() {
   const [formData, setFormData] = useState({
+    labId: "",
     patientId: "",
-    testType: "",
-    result: "",
+    reportType: "",
+    reportData: "",
   });
   const [message, setMessage] = useState(null);
 
@@ -16,7 +17,9 @@ export default function UploadLabReport() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await uploadLabReport(formData);
+      console.log(formData);
+      const res=await uploadLabReport(formData);
+      console.log(res);
       setMessage("Lab report uploaded successfully!");
     } catch (err) {
       setMessage("Failed to upload lab report");
@@ -30,6 +33,15 @@ export default function UploadLabReport() {
       {message && <p className="mb-3 text-blue-600">{message}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+          type="text"
+          name="labId"
+          placeholder="Lab ID"
+          value={formData.labId}
+          onChange={handleChange}
+          className="w-full px-3 py-2 border rounded-lg"
+          required
+        />
         <input
           type="text"
           name="patientId"
@@ -42,18 +54,18 @@ export default function UploadLabReport() {
 
         <input
           type="text"
-          name="testType"
+          name="reportType"
           placeholder="Test Type (e.g. Blood Test)"
-          value={formData.testType}
+          value={formData.reportType}
           onChange={handleChange}
           className="w-full px-3 py-2 border rounded-lg"
           required
         />
 
         <textarea
-          name="result"
-          placeholder="Test Results"
-          value={formData.result}
+          name="reportData"
+          placeholder="Test reportDatas"
+          value={formData.reportData}
           onChange={handleChange}
           className="w-full px-3 py-2 border rounded-lg"
           required

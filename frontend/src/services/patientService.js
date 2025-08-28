@@ -3,7 +3,7 @@ import api from "./api";
 // 🔹 Grant access (to doctor/hospital/insurance)
 export const grantAccess = async ({ patientId, entityId, entityRole }) => {
   try {
-    const res = await api.post("/patients/grantAccess", {
+    const res = await api.post("/patient/grantAccess", {
       patientId,
       entityId,
       entityRole,
@@ -17,8 +17,8 @@ export const grantAccess = async ({ patientId, entityId, entityRole }) => {
 // 🔹 View prescriptions
 export const getMyPrescriptions = async ({ patientId, userId }) => {
   try {
-    const res = await api.get(`/patients/prescriptions/${patientId}`, {
-      data: { userId }, // axios allows sending body in GET if passed in config.data
+    const res = await api.get(`/patient/prescriptions/${patientId}`, {
+      params: { userId }, // axios allows sending body in GET if passed in config.data
     });
     return res.data;
   } catch (err) {
@@ -29,8 +29,8 @@ export const getMyPrescriptions = async ({ patientId, userId }) => {
 // 🔹 View lab reports
 export const getMyReports = async ({ patientId, userId }) => {
   try {
-    const res = await api.get(`/patients/reports/${patientId}`, {
-      data: { userId },
+    const res = await api.get(`/patient/reports/${patientId}`, {
+      params: { userId },
     });
     return res.data;
   } catch (err) {
@@ -41,8 +41,9 @@ export const getMyReports = async ({ patientId, userId }) => {
 // 🔹 View treatment history
 export const getMyHistory = async ({ patientId, userId }) => {
   try {
-    const res = await api.get(`/patients/history/${patientId}`, {
-      data: { userId },
+    console.log("Service: Fetching history for patientId:", patientId, "by userId:", userId);
+    const res = await api.get(`/patient/history/${patientId}`, {
+      params: { userId },
     });
     return res.data;
   } catch (err) {
@@ -53,7 +54,7 @@ export const getMyHistory = async ({ patientId, userId }) => {
 // 🔹 Request insurance claim
 export const requestClaim = async ({ patientId, policyNumber, amount, reason }) => {
   try {
-    const res = await api.post("/patients/requestClaim", {
+    const res = await api.post("/patient/requestClaim", {
       patientId,
       policyNumber,
       amount,
@@ -68,19 +69,33 @@ export const requestClaim = async ({ patientId, policyNumber, amount, reason }) 
 // 🔹 View reward points
 export const getMyRewards = async ({ patientId, userId }) => {
   try {
-    const res = await api.get(`/patients/rewards/${patientId}`, {
-      data: { userId },
+    const res = await api.get(`/patient/rewards/${patientId}`, {
+      params: { userId },
     });
+    console.log("res:", res);
     return res.data;
   } catch (err) {
     throw err.response?.data || { error: "Failed to fetch rewards" };
   }
 };
 
+// 🔹 View my claims
+export const getMyClaims = async ({ patientId, userId }) => {
+  try {
+    const res = await api.get(`/patient/claims/${patientId}`, {
+      params: { userId },
+    });
+    return res.data;
+  } catch (err) {
+    throw err.response?.data || { error: "Failed to fetch claims" };
+  }
+};
+
+
 // 🔹 Use reward points for treatment
 export const useReward = async ({ userId, patientId, treatmentId, amount }) => {
   try {
-    const res = await api.post("/patients/useReward", {
+    const res = await api.post("/patient/useReward", {
       userId,
       patientId,
       treatmentId,

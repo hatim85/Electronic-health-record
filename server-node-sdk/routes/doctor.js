@@ -95,10 +95,11 @@ router.get('/patients/:doctorId', async (req, res) => {
     try {
         const doctorId = req.params.doctorId;
         const args = { doctorId };
-        const result = await getQuery('getAllPatientsByDoctor', args, doctorId);
+        const result = await getQuery('getAllPatientsWithRecordsByDoctor', args, doctorId);
+        console.log('Patients with records:', result);
         res.json(result);
     } catch (error) {
-        console.error('Error fetching patients:', error);
+        console.error('Error fetching patients with records:', error);
         res.status(500).json({ error: error.message });
     }
 });

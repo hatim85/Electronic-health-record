@@ -3,7 +3,7 @@ import { processResearchData } from "../../services/researcherService";
 
 export default function ProcessData() {
   const [form, setForm] = useState({
-    researcherId: "researcher123",
+    researcherId: "",
     datasetType: "",
     resultSummary: "",
   });
@@ -27,6 +27,14 @@ export default function ProcessData() {
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">Process Research Data</h1>
       <form onSubmit={handleSubmit} className="grid gap-4 max-w-md">
+          <input
+            name="researcherId"
+            placeholder="Researcher ID"
+            value={form.researcherId}
+            onChange={handleChange}
+            className="border p-2 rounded"
+            required
+        />
         <input
           name="datasetType"
           placeholder="Dataset Type (e.g., Prescription, Lab Report)"

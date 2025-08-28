@@ -11,6 +11,7 @@ export default function MyPatients() {
     setLoading(true);
     try {
       const res = await getPatientsByDoctor(doctorId);
+      console.log("Fetched patients:", res);
       setPatients(res);
     } catch (err) {
       console.error("Failed to fetch patients", err);
@@ -51,10 +52,29 @@ export default function MyPatients() {
               className="border p-4 rounded-lg shadow bg-white"
             >
               <p><strong>Patient ID:</strong> {p.patientId}</p>
-              <p><strong>Diagnosis:</strong> {p.diagnosis}</p>
-              <p><strong>Prescription:</strong> {p.prescription}</p>
+              <p><strong>Name:</strong> {p.name}</p>
+              <p><strong>DOB:</strong> {p.dob}</p>
+
+              {p.records && p.records.length > 0 ? (
+                <div className="mt-2">
+                  <h4 className="font-semibold">Records:</h4>
+                  <ul className="list-disc pl-6">
+                    {p.records.map((r, rIdx) => (
+                      <li key={rIdx} className="mt-1">
+                        <p><strong>Record ID:</strong> {r.recordId}</p>
+                        <p><strong>Diagnosis:</strong> {r.diagnosis}</p>
+                        <p><strong>Prescription:</strong> {r.prescription}</p>
+                        <p><strong>Date:</strong> {r.createdAt}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <p className="mt-2 text-gray-500">No records available</p>
+              )}
             </div>
           ))}
+
         </div>
       )}
     </div>

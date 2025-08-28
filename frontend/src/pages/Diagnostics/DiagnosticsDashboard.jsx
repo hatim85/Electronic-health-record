@@ -12,16 +12,16 @@ export default function DiagnosticsDashboard() {
           Upload Lab Report
         </Link>
         <Link
-          to="/diagnostics/reports"
+          to="/diagnostics/view-lab-reports"
           className="bg-green-500 text-white p-6 rounded-2xl shadow hover:bg-green-600"
         >
           View Lab Reports
         </Link>
         <Link
-          to="/diagnostics/request"
+          to="/diagnostics/view-patient-prescriptions"
           className="bg-purple-500 text-white p-6 rounded-2xl shadow hover:bg-purple-600"
         >
-          Request New Test
+          View Patient Prescriptions
         </Link>
       </div>
     </div>

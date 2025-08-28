@@ -24,7 +24,7 @@ async function main() {
         const wallet = await Wallets.newFileSystemWallet(walletPath);
         console.log(`Wallet path: ${walletPath}`);
 
-        const userId = 'Patient-John01';
+        const userId = 'P01';
 
         const userIdentity = await wallet.get(userId);
         if (userIdentity) {

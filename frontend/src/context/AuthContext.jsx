@@ -1,15 +1,12 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect } from "react";
 import axios from "axios";
 
 // Create Context
 const AuthContext = createContext();
 
-// Custom hook
-export const useAuth = () => useContext(AuthContext);
-
 // Provider
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);     // { id, role, token }
+  const [user, setUser] = useState(null); // { id, role, token }
   const [loading, setLoading] = useState(true);
 
   // Load user from localStorage on refresh
@@ -23,7 +20,10 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       // Example API call -> adjust with your backend
-      const res = await axios.post("http://localhost:3000/api/v1/hospital/login", credentials);
+      const res = await axios.post(
+        "http://localhost:3000/api/v1/auth/login",
+        credentials
+      );
       const loggedInUser = res.data; // { id, role, token }
 
       setUser(loggedInUser);
@@ -31,7 +31,10 @@ export const AuthProvider = ({ children }) => {
       return { success: true, user: loggedInUser };
     } catch (err) {
       console.error("Login failed", err);
-      return { success: false, message: err.response?.data?.error || "Login failed" };
+      return {
+        success: false,
+        message: err.response?.data?.error || "Login failed",
+      };
     }
   };
 
@@ -55,3 +58,5 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+export default AuthContext;

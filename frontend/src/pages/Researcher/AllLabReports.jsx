@@ -3,7 +3,7 @@ import { getAllLabReports } from "../../services/researcherService";
 import { Card, CardContent } from "../../components/Card";
 
 export default function AllLabReports() {
-  const [researcherId] = useState("researcher123");
+  const [researcherId, setResearcherId] = useState("");
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -13,7 +13,8 @@ export default function AllLabReports() {
       setLoading(true);
       setError("");
       const data = await getAllLabReports(researcherId);
-      setReports(data.reports || []);
+      console.log("Fetched lab reports data:", data);
+      setReports(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err.error || "Error fetching lab reports");
     } finally {
@@ -24,6 +25,13 @@ export default function AllLabReports() {
   return (
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">All Lab Reports</h1>
+      <input
+        type="text"
+        placeholder="Enter Researcher ID"
+        value={researcherId}
+        onChange={(e) => setResearcherId(e.target.value)}
+        className="border p-2 rounded mr-2"
+      />
       <button
         onClick={fetchReports}
         className="bg-blue-600 text-white px-4 py-2 rounded"
@@ -36,16 +44,22 @@ export default function AllLabReports() {
 
       <div className="grid gap-4 mt-4">
         {reports.map((r, i) => (
-          <Card key={i}>
+          <Card key={r.recordId || i}>
             <CardContent className="p-4">
-              <h2 className="font-semibold">Report ID: {r.reportId}</h2>
+              <h2 className="font-semibold">Report ID: {r.recordId}</h2>
               <p>Patient ID: {r.patientId}</p>
-              <p>Type: {r.testType}</p>
-              <p>Result: {r.result}</p>
+              <p>Lab ID: {r.labReport?.labId}</p>
+              <p>Type: {r.labReport?.reportType}</p>
+              <p>Result: {r.labReport?.reportData}</p>
+              <p className="text-sm text-gray-500">
+                Created At: {r.labReport?.createdAt ? new Date(r.labReport.createdAt).toLocaleString() : "N/A"}
+              </p>
             </CardContent>
           </Card>
         ))}
       </div>
+
+
     </div>
   );
 }

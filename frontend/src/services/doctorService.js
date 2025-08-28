@@ -18,7 +18,7 @@ export const doctorLogin = async (doctorId) => {
  */
 export const createPatientRecord = async ({ doctorId, patientId, diagnosis, prescription }) => {
   try {
-    const res = await api.post("/patientRecord", {
+    const res = await api.post("/doctor/patientRecord", {
       doctorId,
       patientId,
       diagnosis,
@@ -35,7 +35,7 @@ export const createPatientRecord = async ({ doctorId, patientId, diagnosis, pres
  */
 export const updatePatientRecord = async ({ doctorId, recordId, patientId, diagnosis, prescription }) => {
   try {
-    const res = await api.put("/patientRecord", {
+    const res = await api.put("/doctor/patientRecord", {
       doctorId,
       recordId,
       patientId,
@@ -53,7 +53,7 @@ export const updatePatientRecord = async ({ doctorId, recordId, patientId, diagn
  */
 export const uploadPatientDescription = async ({ doctorId, patientId, description }) => {
   try {
-    const res = await api.post("/patientDescription", {
+    const res = await api.post("/doctor/patientDescription", {
       doctorId,
       patientId,
       description,
@@ -69,7 +69,8 @@ export const uploadPatientDescription = async ({ doctorId, patientId, descriptio
  */
 export const getPatientsByDoctor = async (doctorId) => {
   try {
-    const res = await api.get(`/patients/${doctorId}`);
+    const res = await api.get(`/doctor/patients/${doctorId}`);
+    console.log('Fetched patients:', res.data);
     return res.data;
   } catch (error) {
     throw error.response?.data || { error: "Failed to fetch patients" };

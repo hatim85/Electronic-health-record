@@ -3,7 +3,7 @@ import { updateMedicineStock } from "../../services/pharmaService";
 
 export default function UpdateStock() {
   const [form, setForm] = useState({
-    pharmacyId: "pharma123",
+    pharmacyId: "",
     medicineName: "",
     newStock: "",
   });
@@ -16,6 +16,7 @@ export default function UpdateStock() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log("Submitting form:", form);
       const data = await updateMedicineStock(form);
       setMessage(`✅ Stock Updated: ${data.message || "Success"}`);
     } catch (err) {
@@ -27,6 +28,13 @@ export default function UpdateStock() {
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">Update Medicine Stock</h1>
       <form onSubmit={handleSubmit} className="grid gap-4 max-w-md">
+        <input
+          name="pharmacyId"
+          placeholder="Pharmacy ID"
+          value={form.pharmacyId}
+          onChange={handleChange}
+          className="border p-2 rounded"
+        />
         <input
           name="medicineName"
           placeholder="Medicine Name"

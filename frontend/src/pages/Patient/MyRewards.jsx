@@ -12,11 +12,12 @@ export default function MyRewards() {
   const fetchRewards = async () => {
     try {
       const res = await getMyRewards({ patientId, userId });
-      setRewards(res.points || 0);
+      setRewards(res.balance || 0);
     } catch (err) {
       setMessage(err.error);
     }
   };
+
 
   const handleUse = async () => {
     try {
@@ -33,7 +34,6 @@ export default function MyRewards() {
       <input placeholder="Patient ID" className="border p-2 mr-2" value={patientId} onChange={(e) => setPatientId(e.target.value)} />
       <input placeholder="User ID" className="border p-2 mr-2" value={userId} onChange={(e) => setUserId(e.target.value)} />
       <button onClick={fetchRewards} className="bg-blue-500 text-white px-4 py-2">Fetch Rewards</button>
-
       <p className="mt-2">Reward Points: {rewards}</p>
 
       <h3 className="mt-4 font-semibold">Use Reward Points</h3>

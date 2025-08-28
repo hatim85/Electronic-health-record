@@ -3,7 +3,7 @@ import { Card, CardContent } from "../../components/Card";
 import { getPatientPrescription } from "../../services/pharmaService";
 
 export default function PharmaDashboard() {
-  const [pharmacyId] = useState("pharma123"); // Example ID
+  const [pharmacyId, setPharmacyId] = useState(""); // Example ID
   const [patientId, setPatientId] = useState("");
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -18,7 +18,8 @@ export default function PharmaDashboard() {
       setLoading(true);
       setError("");
       const data = await getPatientPrescription(pharmacyId, patientId);
-      setPrescriptions(data.prescriptions || []);
+      console.log("Fetched prescription data:", data);
+      setPrescriptions(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err.error || "Error fetching prescription");
     } finally {
@@ -30,6 +31,13 @@ export default function PharmaDashboard() {
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">Pharmacy Dashboard</h1>
       <div className="flex gap-2 mb-4">
+        <input
+          type="text"
+          placeholder="Enter Pharmacy ID"
+          value={pharmacyId}
+          onChange={(e) => setPharmacyId(e.target.value)}
+          className="border p-2 rounded"
+        />
         <input
           type="text"
           placeholder="Enter Patient ID"
@@ -52,9 +60,13 @@ export default function PharmaDashboard() {
         {prescriptions.map((p, i) => (
           <Card key={i}>
             <CardContent className="p-4">
-              <h2 className="font-semibold">{p.medicineName}</h2>
-              <p>Dosage: {p.dosage}</p>
-              <p>Quantity: {p.quantity}</p>
+              <h2 className="font-semibold">{p.prescription}</h2>
+              <p>Diagnosis: {p.diagnosis}</p>
+              <p>Doctor: {p.doctorId}</p>
+              <p>Record ID: {p.recordId}</p>
+              <p className="text-sm text-gray-500">
+                Created: {new Date(p.createdAt).toLocaleString()}
+              </p>
             </CardContent>
           </Card>
         ))}

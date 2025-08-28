@@ -29,7 +29,14 @@ export const registerHospital = async ({ hospitalId, name, city }) => {
 };
 
 // 🔹 Register Patient (by hospital admin)
-export const registerPatient = async ({ hospitalId, patientId, name, dob, gender, city }) => {
+export const registerPatient = async ({
+  hospitalId,
+  patientId,
+  name,
+  dob,
+  gender,
+  city,
+}) => {
   try {
     const res = await api.post("/hospital/patient", {
       hospitalId,
@@ -46,7 +53,13 @@ export const registerPatient = async ({ hospitalId, patientId, name, dob, gender
 };
 
 // 🔹 Register Doctor
-export const registerDoctor = async ({ hospitalId, doctorId, name, specialization, city }) => {
+export const registerDoctor = async ({
+  hospitalId,
+  doctorId,
+  name,
+  specialization,
+  city,
+}) => {
   try {
     const res = await api.post("/hospital/doctor", {
       hospitalId,
@@ -62,7 +75,13 @@ export const registerDoctor = async ({ hospitalId, doctorId, name, specializatio
 };
 
 // 🔹 Update Doctor Profile
-export const updateDoctor = async ({ doctorId, hospitalId, name, specialization, city }) => {
+export const updateDoctor = async ({
+  doctorId,
+  hospitalId,
+  name,
+  specialization,
+  city,
+}) => {
   try {
     const res = await api.put(`/hospital/doctor/${doctorId}`, {
       hospitalId,
@@ -92,6 +111,7 @@ export const deleteDoctor = async ({ doctorId, hospitalId }) => {
 export const getDoctorsByHospital = async (hospitalId) => {
   try {
     const res = await api.get(`/hospital/doctors/${hospitalId}`);
+    console.log("res: ", res);
     return res.data;
   } catch (err) {
     throw err.response?.data || { error: "Fetching doctors failed" };
@@ -109,7 +129,12 @@ export const getPatientsByHospital = async (hospitalId) => {
 };
 
 // 🔹 Register Diagnostic Center
-export const registerDiagnostic = async ({ hospitalId, diagnosticsId, name, city }) => {
+export const registerDiagnostic = async ({
+  hospitalId,
+  diagnosticsId,
+  name,
+  city,
+}) => {
   try {
     const res = await api.post("/hospital/diagnostic", {
       hospitalId,
@@ -119,12 +144,19 @@ export const registerDiagnostic = async ({ hospitalId, diagnosticsId, name, city
     });
     return res.data;
   } catch (err) {
-    throw err.response?.data || { error: "Diagnostic center registration failed" };
+    throw (
+      err.response?.data || { error: "Diagnostic center registration failed" }
+    );
   }
 };
 
 // 🔹 Register Pharmacy
-export const registerPharmacy = async ({ hospitalId, pharmacyId, name, city }) => {
+export const registerPharmacy = async ({
+  hospitalId,
+  pharmacyId,
+  name,
+  city,
+}) => {
   try {
     const res = await api.post("/hospital/pharmacy", {
       hospitalId,

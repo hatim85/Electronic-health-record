@@ -1,4 +1,5 @@
-const { _stringify } = require("./helper.js");
+const { _stringify } = require('./helper.js');
+const { getCallerAttributes } = require('./identity.js');
 
 async function getAllRecordsByPatientId(ctx, args) {
     args = typeof args === 'string' ? JSON.parse(args) : args;
@@ -16,11 +17,15 @@ async function getAllRecordsByPatientId(ctx, args) {
 
     const allowed = (() => {
         if (role === 'patient' && callerId === args.patientId) return true;
-        if (role === 'doctor' && patient.authorizedEntities?.includes(callerId)) return true;
+        if (role === 'doctor' && patient.authorizedEntities?.includes(callerId))
+            return true;
         if (role === 'hospital') return true;
         if (role === 'researcher') {
             return (async () => {
-                const consentKey = ctx.stub.createCompositeKey('consent', [args.patientId, callerId]);
+                const consentKey = ctx.stub.createCompositeKey('consent', [
+                    args.patientId,
+                    callerId,
+                ]);
                 const consentBytes = await ctx.stub.getState(consentKey);
                 if (!consentBytes || consentBytes.length === 0) return false;
                 const consent = JSON.parse(consentBytes.toString());
@@ -33,7 +38,8 @@ async function getAllRecordsByPatientId(ctx, args) {
         return false;
     })();
 
-    const isAllowed = typeof allowed.then === 'function' ? await allowed : allowed;
+    const isAllowed =
+        typeof allowed.then === 'function' ? await allowed : allowed;
     if (!isAllowed) {
         throw new Error('Caller not authorized to read patient records');
     }
@@ -42,7 +48,9 @@ async function getAllRecordsByPatientId(ctx, args) {
 
     // ✅ 1. Treatments / prescriptions stored under "record" or "treatment"
     for (const prefix of ['record', 'treatment']) {
-        const iterator = await ctx.stub.getStateByPartialCompositeKey(prefix, [args.patientId]);
+        const iterator = await ctx.stub.getStateByPartialCompositeKey(prefix, [
+            args.patientId,
+        ]);
         while (true) {
             const res = await iterator.next();
             if (res.value && res.value.value) {
@@ -60,7 +68,10 @@ async function getAllRecordsByPatientId(ctx, args) {
     }
 
     // ✅ 2. Lab reports under "labReport"
-    const labIterator = await ctx.stub.getStateByPartialCompositeKey('labReport', []);
+    const labIterator = await ctx.stub.getStateByPartialCompositeKey(
+        'labReport',
+        []
+    );
     while (true) {
         const res = await labIterator.next();
         if (res.value && res.value.value) {
@@ -68,7 +79,7 @@ async function getAllRecordsByPatientId(ctx, args) {
                 const obj = JSON.parse(res.value.value.toString('utf8'));
                 if (obj.patientId === args.patientId) results.push(obj);
             } catch (err) {
-                console.error("Failed to parse labReport", err);
+                console.error('Failed to parse labReport', err);
             }
         }
         if (res.done) {
@@ -78,7 +89,10 @@ async function getAllRecordsByPatientId(ctx, args) {
     }
 
     // ✅ 3. Pharmacy dispenses under "dispense"
-    const dispIterator = await ctx.stub.getStateByPartialCompositeKey('dispense', []);
+    const dispIterator = await ctx.stub.getStateByPartialCompositeKey(
+        'dispense',
+        []
+    );
     while (true) {
         const res = await dispIterator.next();
         if (res.value && res.value.value) {
@@ -86,7 +100,7 @@ async function getAllRecordsByPatientId(ctx, args) {
                 const obj = JSON.parse(res.value.value.toString('utf8'));
                 if (obj.patientId === args.patientId) results.push(obj);
             } catch (err) {
-                console.error("Failed to parse dispense", err);
+                console.error('Failed to parse dispense', err);
             }
         }
         if (res.done) {
@@ -96,20 +110,93 @@ async function getAllRecordsByPatientId(ctx, args) {
     }
 
     // ✅ Sort chronologically
-    results.sort((a, b) => new Date(a.createdAt || a.date) - new Date(b.createdAt || b.date));
+    results.sort(
+        (a, b) =>
+            new Date(a.createdAt || a.date) - new Date(b.createdAt || b.date)
+    );
 
     return _stringify(results);
 }
+
+async function getAllPatientsWithRecordsByDoctor(ctx, args) {
+    args = typeof args === 'string' ? JSON.parse(args) : args;
+
+    if (!args.doctorId) throw new Error('doctorId is required');
+
+    const { role, uuid: callerId } = getCallerAttributes(ctx);
+    if (role !== 'doctor' || callerId !== args.doctorId) {
+        throw new Error('Only the doctor themself can fetch their patients with records');
+    }
+
+    // Step 1: fetch patients
+    const patientIterator = await ctx.stub.getStateByPartialCompositeKey('patient', []);
+    const patients = [];
+
+    while (true) {
+        const res = await patientIterator.next();
+        if (res.value && res.value.value) {
+            try {
+                const patient = JSON.parse(res.value.value.toString('utf8'));
+                if (
+                    patient.authorizedEntities &&
+                    patient.authorizedEntities.includes(args.doctorId)
+                ) {
+                    patients.push(patient);
+                }
+            } catch (err) {
+                console.error('Failed to parse patient record', err);
+            }
+        }
+        if (res.done) {
+            await patientIterator.close();
+            break;
+        }
+    }
+
+    // Step 2: fetch records for each patient
+    for (const patient of patients) {
+        const recordIterator = await ctx.stub.getStateByPartialCompositeKey('record', [
+            patient.patientId,
+        ]);
+        const records = [];
+
+        while (true) {
+            const res = await recordIterator.next();
+            if (res.value && res.value.value) {
+                try {
+                    records.push(JSON.parse(res.value.value.toString('utf8')));
+                } catch (err) {
+                    console.error('Failed to parse record', err);
+                }
+            }
+            if (res.done) {
+                await recordIterator.close();
+                break;
+            }
+        }
+
+        // attach records (diagnosis + prescriptions etc.) to the patient
+        patient.records = records;
+    }
+
+    return _stringify(patients);
+}
+
 
 async function getPatientPrescription(ctx, args) {
     args = typeof args === 'string' ? JSON.parse(args) : args;
     if (!args.patientId) throw new Error('patientId required');
 
     // delegates to getAllRecordsByPatientId but filters for prescriptions
-    const recordsJSON = await this.getAllRecordsByPatientId(ctx, JSON.stringify({ patientId: args.patientId }));
+    const recordsJSON = await getAllRecordsByPatientId(
+        ctx,
+        JSON.stringify({ patientId: args.patientId })
+    );
     const records = JSON.parse(recordsJSON);
     // return only records with prescription
-    const prescriptions = records.filter(r => r.prescription && r.prescription.length > 0);
+    const prescriptions = records.filter(
+        (r) => r.prescription && r.prescription.length > 0
+    );
     return _stringify(prescriptions);
 }
 
@@ -123,7 +210,10 @@ async function getAllPatientsByDoctor(ctx, args) {
         throw new Error('Only the doctor themself can fetch their patients');
     }
 
-    const iterator = await ctx.stub.getStateByPartialCompositeKey('patient', []);
+    const iterator = await ctx.stub.getStateByPartialCompositeKey(
+        'patient',
+        []
+    );
     const patients = [];
 
     while (true) {
@@ -132,11 +222,14 @@ async function getAllPatientsByDoctor(ctx, args) {
         if (res.value && res.value.value) {
             try {
                 const patient = JSON.parse(res.value.value.toString('utf8'));
-                if (patient.authorizedEntities && patient.authorizedEntities.includes(args.doctorId)) {
+                if (
+                    patient.authorizedEntities &&
+                    patient.authorizedEntities.includes(args.doctorId)
+                ) {
                     patients.push(patient);
                 }
             } catch (err) {
-                console.error("Failed to parse patient record", err);
+                console.error('Failed to parse patient record', err);
             }
         }
 
@@ -156,8 +249,8 @@ async function getAllDoctorsByHospital(ctx, args) {
     const query = {
         selector: {
             docType: 'doctor',
-            createdBy: args.hospitalId
-        }
+            createdBy: args.hospitalId,
+        },
     };
 
     const iterator = await ctx.stub.getQueryResult(JSON.stringify(query));
@@ -181,9 +274,9 @@ async function getAllPatientsByHospital(ctx, args) {
 
     const query = {
         selector: {
-            docType: "patient",
-            hospitalId: hospitalId
-        }
+            docType: 'patient',
+            hospitalId: hospitalId,
+        },
     };
 
     const iterator = await ctx.stub.getQueryResult(JSON.stringify(query));
@@ -203,67 +296,115 @@ async function getAllPatientsByHospital(ctx, args) {
         }
 
         if (res.done) {
-            console.log("--> Query iterator completed");
+            console.log('--> Query iterator completed');
             await iterator.close();
             break;
         }
     }
 
     if (results.length === 0) {
-        return JSON.stringify({ message: `No patients found in hospital ${hospitalId}` });
+        return JSON.stringify({
+            message: `No patients found in hospital ${hospitalId}`,
+        });
     }
 
     return JSON.stringify(results);
-
 }
 
-async function getAllClaimsByInsurance(ctx,
-    args) {
-    args = typeof args === 'string' ? JSON.parse(args) : args;
+async function getAllClaimsByInsurance(ctx, args) {
+    args = typeof args === "string" ? JSON.parse(args) : args;
     const { role } = getCallerAttributes(ctx);
 
     // Allow both agents and admin to query claims
-    if (!['insuranceAdmin', 'insuranceAgent'].includes(role)) {
-        throw new Error('Only insurance admin or insurance agent can query claims');
+    if (!["insuranceAdmin", "insuranceAgent", "insuranceCompany"].includes(role)) {
+        throw new Error("Only insurance admin, insurance company or insurance agent can query claims");
     }
 
-    if (!args.insuranceCompany) throw new Error('insuranceCompany is required');
+    if (!args.insuranceCompany) throw new Error("insuranceCompany is required");
 
     const query = {
         selector: {
-            docType: 'claim',
-            insuranceCompany: args.insuranceCompany
-        }
+            docType: "claim",
+            insuranceCompany: args.insuranceCompany,
+        },
     };
 
     const iterator = await ctx.stub.getQueryResult(JSON.stringify(query));
     const claims = [];
+
     while (true) {
         const res = await iterator.next();
-        if (res.value && res.value.value.toString()) {
-            claims.push(JSON.parse(res.value.value.toString()));
+        if (res.value && res.value.value) {
+            try {
+                const record = JSON.parse(res.value.value.toString("utf8"));
+                claims.push(record);
+            } catch (err) {
+                console.error("Failed to parse claim record:", err);
+            }
         }
         if (res.done) {
             await iterator.close();
             break;
         }
     }
+
     return _stringify(claims);
 }
+
+async function getAllClaimsByPatient(ctx, args) {
+    args = typeof args === "string" ? JSON.parse(args) : args;
+    const { role, uuid } = getCallerAttributes(ctx);
+
+    // Only patients can query their own claims
+    if (role !== "patient") {
+        throw new Error("Only patients can query their own claims");
+    }
+
+    // patientId comes from caller identity (uuid), not args (so patients can’t query others)
+    const query = {
+        selector: {
+            docType: "claim",
+            patientId: uuid,
+        },
+    };
+
+    const iterator = await ctx.stub.getQueryResult(JSON.stringify(query));
+    const claims = [];
+
+    while (true) {
+        const res = await iterator.next();
+        if (res.value && res.value.value) {
+            try {
+                const record = JSON.parse(res.value.value.toString("utf8"));
+                claims.push(record);
+            } catch (err) {
+                console.error("Failed to parse claim record:", err);
+            }
+        }
+        if (res.done) {
+            await iterator.close();
+            break;
+        }
+    }
+
+    return _stringify(claims);
+}
+
+
 
 async function getReportsByPatientId(ctx, args) {
     args = typeof args === 'string' ? JSON.parse(args) : args;
     if (!args.patientId) throw new Error('patientId is required');
 
     // Reuse getAllRecordsByPatientId to fetch all records
-    const recordsJSON = await this.getAllRecordsByPatientId(
+    const recordsJSON = await getAllRecordsByPatientId(
         ctx,
         JSON.stringify({ patientId: args.patientId })
     );
     const records = JSON.parse(recordsJSON);
 
     // Filter only those that contain a lab report field
-    const reports = records.filter(r => r.labReport);
+    const reports = records.filter((r) => r.labReport);
 
     return _stringify(reports);
 }
@@ -273,7 +414,7 @@ async function getAllTreatmentHistory(ctx, args) {
     if (!args.patientId) throw new Error('patientId is required');
 
     // Reuse existing function to fetch all records (diagnosis, prescription, reports, etc.)
-    const recordsJSON = await this.getAllRecordsByPatientId(
+    const recordsJSON = await getAllRecordsByPatientId(
         ctx,
         JSON.stringify({ patientId: args.patientId })
     );
@@ -297,7 +438,8 @@ async function getRewardBalance(ctx, args) {
 
     const rewardKey = ctx.stub.createCompositeKey('reward', [args.patientId]);
     const rewardBytes = await ctx.stub.getState(rewardKey);
-    if (!rewardBytes || rewardBytes.length === 0) return _stringify({ patientId: args.patientId, balance: 0 });
+    if (!rewardBytes || rewardBytes.length === 0)
+        return _stringify({ patientId: args.patientId, balance: 0 });
 
     return rewardBytes.toString();
 }
@@ -307,16 +449,23 @@ async function getAllPrescriptions(ctx, args) {
 
     const { role: callerRole, uuid: callerId } = getCallerAttributes(ctx);
 
-    const allowedRoles = ['researcher', 'hospital', 'pharmacy', 'insuranceAdmin'];
+    const allowedRoles = [
+        'researcher',
+        'hospital',
+        'pharmacy',
+        'insuranceAdmin',
+    ];
     if (!allowedRoles.includes(callerRole)) {
-        throw new Error('Only researchers, hospitals, pharmacies, or insurance admins can fetch prescriptions');
+        throw new Error(
+            'Only researchers, hospitals, pharmacies, or insurance admins can fetch prescriptions'
+        );
     }
 
     const query = {
         selector: {
             docType: 'record',
-            prescription: { $exists: true }   // fetch only records with prescription field
-        }
+            prescription: { $exists: true }, // fetch only records with prescription field
+        },
     };
 
     const iterator = await ctx.stub.getQueryResult(JSON.stringify(query));
@@ -328,8 +477,14 @@ async function getAllPrescriptions(ctx, args) {
 
             let canAccess = false;
 
-            if (callerRole === 'researcher' || callerRole === 'insuranceAdmin') {
-                const consentKey = ctx.stub.createCompositeKey('consent', [record.patientId, callerId]);
+            if (
+                callerRole === 'researcher' ||
+                callerRole === 'insuranceAdmin'
+            ) {
+                const consentKey = ctx.stub.createCompositeKey('consent', [
+                    record.patientId,
+                    callerId,
+                ]);
                 const consentBytes = await ctx.stub.getState(consentKey);
                 if (consentBytes && consentBytes.length > 0) {
                     const consent = JSON.parse(consentBytes.toString());
@@ -357,16 +512,23 @@ async function getAllLabReports(ctx, args) {
 
     const { role: callerRole, uuid: callerId } = getCallerAttributes(ctx);
 
-    const allowedRoles = ['researcher', 'hospital', 'diagnostics', 'insuranceAdmin'];
+    const allowedRoles = [
+        'researcher',
+        'hospital',
+        'diagnostics',
+        'insuranceAdmin',
+    ];
     if (!allowedRoles.includes(callerRole)) {
-        throw new Error('Only researchers, hospitals, diagnostics, or insurance admins can fetch lab reports');
+        throw new Error(
+            'Only researchers, hospitals, diagnostics, or insurance admins can fetch lab reports'
+        );
     }
 
     const query = {
         selector: {
             docType: 'record',
-            labReport: { $exists: true }   // fetch only records with labReport field
-        }
+            labReport: { $exists: true }, // fetch only records with labReport field
+        },
     };
 
     const iterator = await ctx.stub.getQueryResult(JSON.stringify(query));
@@ -378,8 +540,14 @@ async function getAllLabReports(ctx, args) {
 
             let canAccess = false;
 
-            if (callerRole === 'researcher' || callerRole === 'insuranceAdmin') {
-                const consentKey = ctx.stub.createCompositeKey('consent', [report.patientId, callerId]);
+            if (
+                callerRole === 'researcher' ||
+                callerRole === 'insuranceAdmin'
+            ) {
+                const consentKey = ctx.stub.createCompositeKey('consent', [
+                    report.patientId,
+                    callerId,
+                ]);
                 const consentBytes = await ctx.stub.getState(consentKey);
                 if (consentBytes && consentBytes.length > 0) {
                     const consent = JSON.parse(consentBytes.toString());
@@ -402,18 +570,6 @@ async function getAllLabReports(ctx, args) {
     return _stringify(reports);
 }
 
-function getCallerAttributes(ctx) {
-    const role = ctx.clientIdentity.getAttributeValue('role');
-    const uuid = ctx.clientIdentity.getAttributeValue('uuid');
-
-    if (!role || !uuid) {
-        console.log('Caller attributes missing role or uuid:', { role, uuid });
-        // throw new Error('Missing role or uuid in client certificate');
-        return { "role": role, "uuid": uuid };
-    }
-    return { role, uuid };
-}
-
 module.exports = {
     getPatientPrescription,
     getAllPatientsByDoctor,
@@ -425,5 +581,7 @@ module.exports = {
     getRewardBalance,
     getAllPrescriptions,
     getAllLabReports,
-    getCallerAttributes
+    getAllPatientsWithRecordsByDoctor,
+    getAllRecordsByPatientId,
+    getAllClaimsByPatient,
 };

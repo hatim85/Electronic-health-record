@@ -28,10 +28,31 @@ router.get('/prescription/:labId/:patientId', async (req, res) => {
 });
 
 /**
+ * Get ALL patient lab reports
+ */
+router.get('/labReports/:labId', async (req, res) => {
+    try {
+        const { labId } = req.params;
+
+        if (!labId) {
+            return res.status(400).json({ error: 'researcherId is required' });
+        }
+
+        const args = {};
+        const result = await getQuery('getAllLabReports', args, labId);
+        res.json(result);
+    } catch (error) {
+        console.error('Error fetching lab reports:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
  * Upload Patient Lab Report
  */
 router.post('/labReport', async (req, res) => {
     try {
+        console.log("req body:", req.body);
         const { labId, patientId, reportType, reportData } = req.body;
 
         if (!labId || !patientId || !reportType || !reportData) {

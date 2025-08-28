@@ -34,7 +34,7 @@ router.post('/grantAccess', async (req, res) => {
 router.get('/prescriptions/:patientId', async (req, res) => {
     try {
         const { patientId } = req.params;
-        const { userId } = req.body;
+        const { userId } = req.query;
 
         if (!userId) {
             return res.status(400).json({ error: 'userId is required' });
@@ -55,7 +55,7 @@ router.get('/prescriptions/:patientId', async (req, res) => {
 router.get('/reports/:patientId', async (req, res) => {
     try {
         const { patientId } = req.params;
-        const { userId } = req.body;
+        const { userId } = req.query;
 
         if (!userId) {
             return res.status(400).json({ error: 'userId is required' });
@@ -76,7 +76,7 @@ router.get('/reports/:patientId', async (req, res) => {
 router.get('/history/:patientId', async (req, res) => {
     try {
         const { patientId } = req.params;
-        const { userId } = req.body;
+        const { userId } = req.query;
 
         if (!userId) {
             return res.status(400).json({ error: 'userId is required' });
@@ -111,6 +111,27 @@ router.post('/requestClaim', async (req, res) => {
     }
 });
 
+/**
+ * Get all claims for a patient
+ */
+router.get('/claims/:patientId', async (req, res) => {
+    try {
+        const { patientId } = req.params;
+        const { userId } = req.query;
+
+        if (!userId) {
+            return res.status(400).json({ error: 'userId is required' });
+        }
+
+        const args = { patientId };
+        const result = await getQuery('getAllClaimsByPatient', args, userId);
+        res.json(result);
+    } catch (error) {
+        console.error('Error fetching patient claims:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 
 /**
  * Get reward/token balance
@@ -118,7 +139,7 @@ router.post('/requestClaim', async (req, res) => {
 router.get('/rewards/:patientId', async (req, res) => {
     try {
         const { patientId } = req.params;
-        const { userId } = req.body;
+        const { userId } = req.query;
 
         if (!userId) {
             return res.status(400).json({ error: 'userId is required' });

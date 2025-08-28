@@ -24,7 +24,7 @@ async function main() {
         const wallet = await Wallets.newFileSystemWallet(walletPath);
         console.log(`Wallet path: ${walletPath}`);
 
-        const userId = 'DiagnosticsCenter01';
+        const userId = 'Diag01';
 
         // skip if already exists
         const userIdentity = await wallet.get(userId);

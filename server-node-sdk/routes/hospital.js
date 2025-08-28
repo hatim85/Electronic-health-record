@@ -42,6 +42,7 @@ router.post('/register', async (req, res) => {
             hospitalId,   // userID
             "hospital",   // userRole
             {
+                hospitalId,
                 hospitalName: name, // matches your args object in helper.js
                 city: city
             }

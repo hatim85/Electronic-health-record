@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { getDoctorsByHospital, getPatientsByHospital } from "../../services/hospitalService";
-import { useAuth } from "../../context/AuthContext";
+import {
+  getDoctorsByHospital,
+  getPatientsByHospital,
+} from "../../services/hospitalService";
+import { useAuth } from "../../context/useAuth";
 
 const HospitalDashboard = () => {
   const { user } = useAuth(); // hospitalId comes from auth context
@@ -32,7 +35,9 @@ const HospitalDashboard = () => {
           <h2 className="text-xl font-semibold mb-2">👨‍⚕️ Doctors</h2>
           <ul>
             {doctors.map((doc) => (
-              <li key={doc.doctorId}>{doc.name} ({doc.specialization})</li>
+              <li key={doc.doctorId}>
+                {doc.name} ({doc.specialization})
+              </li>
             ))}
           </ul>
         </div>
@@ -41,7 +46,9 @@ const HospitalDashboard = () => {
           <h2 className="text-xl font-semibold mb-2">🧑‍🤝‍🧑 Patients</h2>
           <ul>
             {patients.map((pat) => (
-              <li key={pat.patientId}>{pat.name} ({pat.gender})</li>
+              <li key={pat.patientId}>
+                {pat.name} ({pat.gender})
+              </li>
             ))}
           </ul>
         </div>

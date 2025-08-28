@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [userId, setUserId] = useState("");
-  const [role, setRole] = useState("patient"); // default role
+  const [userRole, setUserRole] = useState("patient"); // default role
   const [error, setError] = useState(null);
 
   const { login } = useAuth();
@@ -15,7 +15,7 @@ export default function Login() {
     setError(null);
 
     try {
-      await login(userId, role);
+      await login({ userId, userRole });
       navigate("/hospital/dashboard"); // redirect after login
     } catch (err) {
       setError(err.error || "Failed to login");
@@ -40,8 +40,8 @@ export default function Login() {
           />
 
           <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
+            value={userRole}
+            onChange={(e) => setUserRole(e.target.value)}
             className="w-full px-3 py-2 border rounded-lg"
           >
             <option value="">Select Role</option>

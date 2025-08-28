@@ -1,5 +1,5 @@
-const { _genId, _stringify } = require("../utils/helper.js");
-const { getCallerAttributes } = require("../utils/query.js");
+const { _genId, _stringify } = require('../utils/helper.js');
+const { getCallerAttributes } = require('../utils/identity.js');
 
 async function uploadLabReport(ctx, args) {
     args = typeof args === 'string' ? JSON.parse(args) : args;
@@ -16,7 +16,10 @@ async function uploadLabReport(ctx, args) {
     }
 
     const reportId = _genId(ctx, 'lab');
-    const recordKey = ctx.stub.createCompositeKey('record', [args.patientId, reportId]);
+    const recordKey = ctx.stub.createCompositeKey('record', [
+        args.patientId,
+        reportId,
+    ]);
 
     const record = {
         docType: 'record',
@@ -26,12 +29,18 @@ async function uploadLabReport(ctx, args) {
             labId: callerId,
             reportType: args.reportType,
             reportData: args.reportData,
-            createdAt: new Date(ctx.stub.getTxTimestamp().seconds.low * 1000).toISOString()
-        }
+            createdAt: new Date(
+                ctx.stub.getTxTimestamp().seconds.low * 1000
+            ).toISOString(),
+        },
     };
 
     await ctx.stub.putState(recordKey, Buffer.from(_stringify(record)));
-    return _stringify({ success: true, message: 'Lab report uploaded', reportId });
+    return _stringify({
+        success: true,
+        message: 'Lab report uploaded',
+        reportId,
+    });
 }
 
 module.exports = { uploadLabReport };

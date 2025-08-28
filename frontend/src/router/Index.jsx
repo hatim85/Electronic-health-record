@@ -20,7 +20,6 @@ import RequestClaim from "../pages/Patient/RequestClaim";
 import DiagnosticsDashboard from "../pages/Diagnostics/DiagnosticsDashboard";
 import UploadReport from "../pages/Diagnostics/UploadReport";
 import ViewLabReports from "../pages/Diagnostics/ViewLabReports";
-import RequestLabTest from "../pages/Diagnostics/RequestLabTest";
 
 // Insurance
 import InsuranceDashboard from "../pages/Insurance/InsuranceDashboard";
@@ -28,6 +27,7 @@ import RegisterAgent from "../pages/Insurance/RegisterAgent";
 import IssueInsurance from "../pages/Insurance/IssueInsurance";
 import ClaimList from "../pages/Insurance/ClaimList";
 import ApproveClaim from "../pages/Insurance/ApproveClaim";
+import RegisterInsuranceCompany from "../pages/Insurance/RegisterInsuranceCompany";
 
 // Pharma
 import PharmaDashboard from "../pages/Pharma/PharmaDashboard";
@@ -49,6 +49,11 @@ import RegisterDoctor from "../pages/Hospital/RegisterDoctor";
 import RegisterPatient from "../pages/Hospital/RegisterPatient";
 import RegisterPharmacy from "../pages/Hospital/RegisterPharmacy";
 import RegisterDiagnostics from "../pages/Hospital/RegisterDiagnostics";
+import RegisterHospital from "../pages/Hospital/RegisterHospital";
+import RegisterResearcher from "../pages/Researcher/RegisterResearcher";
+import UpdateDoctor from "../pages/Hospital/UpdateDoctor";
+import ViewPatientPrescription from "../pages/Diagnostics/ViewPatientPrescription";
+import MyClaims from "../pages/Patient/MyClaims";
 
 export default function AppRouter() {
   return (
@@ -63,10 +68,12 @@ export default function AppRouter() {
 
         <Route path="/hospital/dashboard" element={<HospitalDashboard />} />
         <Route path="/hospital/manage-doctors" element={<ManageDoctors />} />
+        <Route path="/hospital/register-hospital" element={<RegisterHospital />} />
         <Route path="/hospital/register-doctor" element={<RegisterDoctor />} />
-        <Route path="/hospital/register-patient" element={<RegisterPatient/>} />
-        <Route path="/hospital/register-pharmacy" element={<RegisterPharmacy/>} />
-        <Route path="/hospital/register-diagnostics" element={<RegisterDiagnostics/>} />
+        <Route path="/hospital/register-patient" element={<RegisterPatient />} />
+        <Route path="/hospital/register-pharmacy" element={<RegisterPharmacy />} />
+        <Route path="/hospital/register-diagnostics" element={<RegisterDiagnostics />} />
+        <Route path="hospital/update-doctor" element={<UpdateDoctor />} />
 
         {/* Doctor */}
         <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
@@ -82,12 +89,13 @@ export default function AppRouter() {
         <Route path="/patient/reports" element={<MyReports />} />
         <Route path="/patient/rewards" element={<MyRewards />} />
         <Route path="/patient/request-claim" element={<RequestClaim />} />
+        <Route path="/patient/view-claims" element={<MyClaims />} />
 
         {/* Diagnostics */}
         <Route path="/diagnostics/dashboard" element={<DiagnosticsDashboard />} />
         <Route path="/diagnostics/upload" element={<UploadReport />} />
         <Route path="/diagnostics/view-lab-reports" element={<ViewLabReports />} />
-        <Route path="/diagnostics/request-lab-test" element={<RequestLabTest />} />
+        <Route path="/diagnostics/view-patient-prescriptions" element={<ViewPatientPrescription />} />
 
         {/* Insurance */}
         <Route path="/insurance/dashboard" element={<InsuranceDashboard />} />
@@ -95,6 +103,7 @@ export default function AppRouter() {
         <Route path="/insurance/issue" element={<IssueInsurance />} />
         <Route path="/insurance/claims" element={<ClaimList />} />
         <Route path="/insurance/approve-claim" element={<ApproveClaim />} />
+        <Route path="/insurance/register-company" element={<RegisterInsuranceCompany />} />
 
         {/* Pharma */}
         <Route path="/pharma/dashboard" element={<PharmaDashboard />} />
@@ -106,6 +115,7 @@ export default function AppRouter() {
         <Route path="/researcher/prescriptions" element={<AllPrescriptions />} />
         <Route path="/researcher/lab-reports" element={<AllLabReports />} />
         <Route path="/researcher/process-data" element={<ProcessData />} />
+        <Route path="/researcher/register-researcher" element={<RegisterResearcher />} />
       </Routes>
     </Router>
   );

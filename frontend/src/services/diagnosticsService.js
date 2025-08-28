@@ -1,17 +1,25 @@
 // services/diagnosticsService.js
-import axios from "axios";
-
-const API_BASE = "http://localhost:3000/api/v1/diagnostics"; // adjust if different
+import api from "./api";
 
 /**
  * Get Patient Prescription by Patient ID
  */
 export const getPatientPrescription = async (labId, patientId) => {
   try {
-    const res = await axios.get(`${API_BASE}/prescription/${labId}/${patientId}`);
+    const res = await api.get(`/diagnostics/prescription/${labId}/${patientId}`);
     return res.data;
   } catch (error) {
     throw error.response?.data || { error: "Failed to fetch patient prescription" };
+  }
+};
+
+export const getAllLabReports = async (labId) => {
+  try {
+    const res = await api.get(`/diagnostics/labReports/${labId}`);
+    console.log("res:", res);
+    return res.data;
+  } catch (error) {
+    throw error.response?.data || { error: "Failed to fetch lab reports" };
   }
 };
 
@@ -20,7 +28,7 @@ export const getPatientPrescription = async (labId, patientId) => {
  */
 export const uploadLabReport = async ({ labId, patientId, reportType, reportData }) => {
   try {
-    const res = await axios.post(`${API_BASE}/labReport`, {
+    const res = await api.post(`/diagnostics/labReport`, {
       labId,
       patientId,
       reportType,

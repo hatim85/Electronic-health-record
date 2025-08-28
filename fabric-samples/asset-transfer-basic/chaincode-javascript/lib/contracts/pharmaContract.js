@@ -1,5 +1,5 @@
-const { _stringify } = require("../utils/helper.js");
-const { getCallerAttributes } = require("../utils/query.js");
+const { _stringify } = require('../utils/helper.js');
+const { getCallerAttributes } = require('../utils/identity.js');
 
 async function updateMedicineStock(ctx, args) {
     args = typeof args === 'string' ? JSON.parse(args) : args;
@@ -16,7 +16,10 @@ async function updateMedicineStock(ctx, args) {
     }
 
     const pharmacyId = callerId; // caller’s UUID as pharmacyId
-    const stockKey = ctx.stub.createCompositeKey('medicineStock', [pharmacyId, args.medicineName]);
+    const stockKey = ctx.stub.createCompositeKey('medicineStock', [
+        pharmacyId,
+        args.medicineName,
+    ]);
 
     let existingStock = 0;
     const existingBytes = await ctx.stub.getState(stockKey);
@@ -34,8 +37,10 @@ async function updateMedicineStock(ctx, args) {
         medicineName: args.medicineName,
         quantity: updatedStock,
         updatedBy: pharmacyId,
-        updatedAt: new Date(ctx.stub.getTxTimestamp().seconds.low * 1000).toISOString(),
-        dispensedHistory: [] // keep history of sales here
+        updatedAt: new Date(
+            ctx.stub.getTxTimestamp().seconds.low * 1000
+        ).toISOString(),
+        dispensedHistory: [], // keep history of sales here
     };
 
     await ctx.stub.putState(stockKey, Buffer.from(JSON.stringify(stockRecord)));
@@ -44,7 +49,7 @@ async function updateMedicineStock(ctx, args) {
         success: true,
         message: `Stock updated for ${args.medicineName}`,
         oldStock: existingStock,
-        newStock: updatedStock
+        newStock: updatedStock,
     });
 }
 
@@ -61,44 +66,64 @@ async function dispenseMedicine(ctx, args) {
 
     const { patientId, recordId, medicineName, quantity } = args;
     if (!patientId || !recordId || !medicineName || !quantity) {
-        throw new Error('patientId, recordId, medicineName, and quantity are required');
+        throw new Error(
+            'patientId, recordId, medicineName, and quantity are required'
+        );
     }
 
     // 1. Fetch the patient record
-    const recordKey = ctx.stub.createCompositeKey('record', [patientId, recordId]);
+    const recordKey = ctx.stub.createCompositeKey('record', [
+        patientId,
+        recordId,
+    ]);
     const recordBytes = await ctx.stub.getState(recordKey);
     if (!recordBytes || recordBytes.length === 0) {
-        throw new Error(`Record ${recordId} not found for patient ${patientId}`);
+        throw new Error(
+            `Record ${recordId} not found for patient ${patientId}`
+        );
     }
     const record = JSON.parse(recordBytes.toString());
 
     // 2. Verify record belongs to patient
     if (record.patientId !== patientId) {
-        throw new Error(`Record ${recordId} does not belong to patient ${patientId}`);
+        throw new Error(
+            `Record ${recordId} does not belong to patient ${patientId}`
+        );
     }
 
     // 3. Verify prescription matches
     if (!record.prescription || record.prescription !== medicineName) {
-        throw new Error(`Medicine ${medicineName} not prescribed in record ${recordId}`);
+        throw new Error(
+            `Medicine ${medicineName} not prescribed in record ${recordId}`
+        );
     }
 
     // 4. Fetch stock
     const pharmacyId = callerId;
-    const stockKey = ctx.stub.createCompositeKey('medicineStock', [pharmacyId, medicineName]);
+    const stockKey = ctx.stub.createCompositeKey('medicineStock', [
+        pharmacyId,
+        medicineName,
+    ]);
     const stockBytes = await ctx.stub.getState(stockKey);
     if (!stockBytes || stockBytes.length === 0) {
-        throw new Error(`No stock record found for ${medicineName} at pharmacy ${pharmacyId}`);
+        throw new Error(
+            `No stock record found for ${medicineName} at pharmacy ${pharmacyId}`
+        );
     }
     const stock = JSON.parse(stockBytes.toString());
 
     // 5. Validate stock
     if (stock.quantity < quantity) {
-        throw new Error(`Not enough stock for ${medicineName}. Available: ${stock.quantity}`);
+        throw new Error(
+            `Not enough stock for ${medicineName}. Available: ${stock.quantity}`
+        );
     }
 
     // 6. Deduct quantity
     stock.quantity -= quantity;
-    stock.updatedAt = new Date(ctx.stub.getTxTimestamp().seconds.low * 1000).toISOString();
+    stock.updatedAt = new Date(
+        ctx.stub.getTxTimestamp().seconds.low * 1000
+    ).toISOString();
 
     // 7. Log dispensing in stock history
     if (!stock.dispensedHistory) stock.dispensedHistory = [];
@@ -107,7 +132,9 @@ async function dispenseMedicine(ctx, args) {
         recordId,
         medicineName,
         quantity,
-        dispensedAt: new Date(ctx.stub.getTxTimestamp().seconds.low * 1000).toISOString()
+        dispensedAt: new Date(
+            ctx.stub.getTxTimestamp().seconds.low * 1000
+        ).toISOString(),
     });
 
     await ctx.stub.putState(stockKey, Buffer.from(JSON.stringify(stock)));
@@ -119,7 +146,9 @@ async function dispenseMedicine(ctx, args) {
         quantity,
         pharmacyId,
         patientId,
-        dispensedAt: new Date(ctx.stub.getTxTimestamp().seconds.low * 1000).toISOString()
+        dispensedAt: new Date(
+            ctx.stub.getTxTimestamp().seconds.low * 1000
+        ).toISOString(),
     });
 
     await ctx.stub.putState(recordKey, Buffer.from(JSON.stringify(record)));
@@ -127,11 +156,11 @@ async function dispenseMedicine(ctx, args) {
     return _stringify({
         success: true,
         message: `${quantity} ${medicineName}(s) dispensed to patient ${patientId}`,
-        remainingStock: stock.quantity
+        remainingStock: stock.quantity,
     });
 }
 
 module.exports = {
     updateMedicineStock,
-    dispenseMedicine
+    dispenseMedicine,
 };

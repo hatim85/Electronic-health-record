@@ -6,7 +6,8 @@ import api from "./api";
  */
 export const getPatientPrescription = async (pharmacyId, patientId) => {
   try {
-    const res = await api.get(`/prescription/${pharmacyId}/${patientId}`);
+    const res = await api.get(`/pharmacy/prescription/${pharmacyId}/${patientId}`);
+    console.log("res:", res);
     return res.data;
   } catch (error) {
     throw error.response?.data || { error: "Failed to fetch prescription" };
@@ -18,7 +19,7 @@ export const getPatientPrescription = async (pharmacyId, patientId) => {
  */
 export const updateMedicineStock = async ({ pharmacyId, medicineName, newStock }) => {
   try {
-    const res = await axios.post("/updateStock", {
+    const res = await api.post("/pharmacy/updateStock", {
       pharmacyId,
       medicineName,
       newStock,
@@ -34,7 +35,7 @@ export const updateMedicineStock = async ({ pharmacyId, medicineName, newStock }
  */
 export const dispenseMedicine = async ({ pharmacyId, patientId, recordId, medicineName, quantity }) => {
   try {
-    const res = await axios.post("/dispense", {
+    const res = await api.post("/pharmacy/dispense", {
       pharmacyId,
       patientId,
       recordId,
