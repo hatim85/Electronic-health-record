@@ -137,3 +137,4 @@ dist
 
 ./server-node-sdk/wallet
 ./server-node-sdk/node_modules
+./server-node-sdk/.env

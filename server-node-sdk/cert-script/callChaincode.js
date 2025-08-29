@@ -38,7 +38,7 @@ async function main() {
         // const adminIdentity = await wallet.get('insuranceAdmin');
         // if (!adminIdentity) {
         //     console.log('An identity for the insuranceAdmin user "insuranceAdmin" does not exist in the wallet');
-        //     console.log('Run the enrollAdmin.js application before retrying');
+        //     console.log('Run the registerOrgAdmin.js application before retrying');
         //     return;
         // }
 

@@ -73,7 +73,7 @@ export default function AppRouter() {
         <Route path="/hospital/register-patient" element={<RegisterPatient />} />
         <Route path="/hospital/register-pharmacy" element={<RegisterPharmacy />} />
         <Route path="/hospital/register-diagnostics" element={<RegisterDiagnostics />} />
-        <Route path="hospital/update-doctor" element={<UpdateDoctor />} />
+        <Route path="/hospital/update-doctor" element={<UpdateDoctor />} />
 
         {/* Doctor */}
         <Route path="/doctor/dashboard" element={<DoctorDashboard />} />

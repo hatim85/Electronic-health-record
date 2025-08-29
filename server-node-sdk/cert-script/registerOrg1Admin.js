@@ -1,59 +1,8 @@
-// /*
-//  * Copyright IBM Corp. All Rights Reserved.
-//  *
-//  * SPDX-License-Identifier: Apache-2.0
-//  */
-
-// 'use strict';
-
-// const FabricCAServices = require('fabric-ca-client');
-// const { Wallets } = require('fabric-network');
-// const fs = require('fs');
-// const path = require('path');
-
-// async function main() {
-//     try {
-//         // load the network configuration
-//         const ccpPath = path.resolve(__dirname, '../..', 'fabric-samples', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
-//         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
-
-//         // Create a new CA client for interacting with the CA.
-//         const caInfo = ccp.certificateAuthorities['ca.org1.example.com'];
-//         const caTLSCACerts = caInfo.tlsCACerts.pem;
-//         const ca = new FabricCAServices(caInfo.url, { trustedRoots: caTLSCACerts, verify: false }, caInfo.caName);
-
-//         // Create a new file system based wallet for managing identities.
-//         const walletPath = path.join(process.cwd(), 'wallet');
-//         const wallet = await Wallets.newFileSystemWallet(walletPath);
-//         console.log(`Wallet path: ${walletPath}`);
-
-//         // Check to see if we've already enrolled the admin user.
-//         const identity = await wallet.get('hospitalAdmin');
-//         if (identity) {
-//             console.log('An identity for the admin user "admin" already exists in the wallet');
-//             return;
-//         }
-
-//         // Enroll the admin user, and import the new identity into the wallet.
-//         const enrollment = await ca.enroll({ enrollmentID: 'admin', enrollmentSecret: 'adminpw' });
-//         const x509Identity = {
-//             credentials: {
-//                 certificate: enrollment.certificate,
-//                 privateKey: enrollment.key.toBytes(),
-//             },
-//             mspId: 'Org1MSP',
-//             type: 'X.509',
-//         };
-//         await wallet.put('hospitalAdmin', x509Identity);
-//         console.log('Successfully enrolled admin user "admin1" and imported it into the wallet');
-
-//     } catch (error) {
-//         console.error(`Failed to enroll admin user "admin1": ${error}`);
-//         process.exit(1);
-//     }
-// }
-
-// main();
+/*
+ * Copyright IBM Corp. All Rights Reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 'use strict';
 
@@ -62,98 +11,85 @@ const { Wallets } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
 
+// ⬇️ Import the necessary functions from your Pinata helpers
+const { storeIdentity, findCidByUserId } = require('../pinataWallet.js'); // Adjust path if needed
+const { pinataClient } = require('../pinataClient.js'); // Adjust path if needed
+
+const ADMIN_ID = 'hospitalAdmin';
+
 async function main() {
     try {
-        // Load Org1 connection profile
-        const ccpPath = path.resolve(
-            __dirname,
-            '../..',
-            'fabric-samples',
-            'test-network',
-            'organizations',
-            'peerOrganizations',
-            'org1.example.com',
-            'connection-org1.json'
-        );
+        console.log(`--- Starting registration process for ${ADMIN_ID} ---`);
+
+        // --- 1. CLEANUP STALE PINS ---
+        // This new logic replaces the simple "check and exit" block.
+        console.log(`Searching for any existing pins for ${ADMIN_ID} to clean up...`);
+        const existingCid = await findCidByUserId(ADMIN_ID);
+
+        if (existingCid) {
+            console.log(`Found existing or stale record with CID: ${existingCid}.`);
+            console.log(`Attempting to unpin it now...`);
+            try {
+                // Directly call the Pinata API to delete the old pin
+                await pinataClient.delete(`/pinning/unpin/${existingCid}`);
+                console.log(`✅ Successfully unpinned stale record.`);
+            } catch (error) {
+                // This is expected if the pin is a "ghost" record. We can safely ignore it and continue.
+                console.warn(`⚠️ Could not unpin stale record (this is OK if it was already deleted). Continuing...`);
+            }
+        } else {
+            console.log('No existing records found. Proceeding with fresh registration.');
+        }
+
+        // --- 2. PROCEED WITH REGISTRATION ---
+        console.log(`\nRegistering a new identity for ${ADMIN_ID}...`);
+
+        const ccpPath = path.resolve(__dirname, '../..', 'fabric-samples', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
         const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
 
         const caInfo = ccp.certificateAuthorities['ca.org1.example.com'];
-        const caTLSCACerts = caInfo.tlsCACerts.pem;
-        const ca = new FabricCAServices(
-            caInfo.url,
-            { trustedRoots: caTLSCACerts, verify: false },
-            caInfo.caName
-        );
+        const ca = new FabricCAServices(caInfo.url, { trustedRoots: caInfo.tlsCACerts.pem, verify: false }, caInfo.caName);
 
-        // Wallet for storing hospitalAdmin
-        const walletPath = path.join(process.cwd(), 'wallet');
-        const wallet = await Wallets.newFileSystemWallet(walletPath);
-        console.log(`Wallet path: ${walletPath}`);
+        const tempWallet = await Wallets.newInMemoryWallet();
+        const enrollment = await ca.enroll({ enrollmentID: 'admin', enrollmentSecret: 'adminpw' });
 
-        // Check if hospitalAdmin already exists
-        const userIdentity = await wallet.get('hospitalAdmin');
-        if (userIdentity) {
-            console.log('✅ "hospitalAdmin" already exists in the wallet');
-            return;
-        }
-
-        // 1️⃣ Enroll bootstrap admin (in-memory only)
-        const enrollment = await ca.enroll({
-            enrollmentID: 'admin',
-            enrollmentSecret: 'adminpw'
-        });
         const adminIdentity = {
-            credentials: {
-                certificate: enrollment.certificate,
-                privateKey: enrollment.key.toBytes(),
-            },
-            mspId: 'Org1MSP',
-            type: 'X.509',
+            credentials: { certificate: enrollment.certificate, privateKey: enrollment.key.toBytes() },
+            mspId: 'Org1MSP', type: 'X.509',
         };
+        await tempWallet.put('admin', adminIdentity);
 
-        const provider = wallet.getProviderRegistry().getProvider(adminIdentity.type);
+        const provider = tempWallet.getProviderRegistry().getProvider(adminIdentity.type);
         const adminUser = await provider.getUserContext(adminIdentity, 'admin');
 
-        // 2️⃣ Register hospitalAdmin
-        const secret = await ca.register(
-            {
-                affiliation: 'org1.department1',
-                enrollmentID: 'hospitalAdmin',
-                role: 'client',
-                attrs: [
-                    { name: 'role', value: 'hospitalAdmin', ecert: true },
-                    { name: 'uuid', value: 'hospitalAdmin', ecert: true },
-                    { name: 'hf.Registrar.Roles', value: 'client,user,hospital,doctor,insuranceAdmin', ecert: true },
-                    { name: 'hf.Registrar.Attributes', value: '*', ecert: true },
-                    { name: 'hf.Revoker', value: 'true', ecert: true }
-                ],
-            },
-            adminUser // <-- bootstrap admin
-        );
+        const secret = await ca.register({
+            affiliation: 'org1.department1',
+            enrollmentID: ADMIN_ID,
+            role: 'client',
+            attrs: [
+                { name: 'role', value: ADMIN_ID, ecert: true },
+                { name: 'uuid', value: ADMIN_ID, ecert: true },
+                { name: 'hf.Registrar.Roles', value: 'client,user,hospital,doctor,insuranceAdmin', ecert: true },
+                { name: 'hf.Registrar.Attributes', value: '*', ecert: true },
+                { name: 'hf.Revoker', value: 'true', ecert: true }
+            ],
+        }, adminUser);
 
-
-        // 3️⃣ Enroll hospitalAdmin
-        const hospEnrollment = await ca.enroll({
-            enrollmentID: 'hospitalAdmin',
-            enrollmentSecret: secret,
-        });
+        const hospEnrollment = await ca.enroll({ enrollmentID: ADMIN_ID, enrollmentSecret: secret });
 
         const hospitalAdminIdentity = {
-            credentials: {
-                certificate: hospEnrollment.certificate,
-                privateKey: hospEnrollment.key.toBytes(),
-            },
+            credentials: { certificate: hospEnrollment.certificate, privateKey: hospEnrollment.key.toBytes() },
             mspId: 'Org1MSP',
             type: 'X.509',
         };
 
-        // Save ONLY hospitalAdmin in wallet
-        await wallet.put('hospitalAdmin', hospitalAdminIdentity);
+        // --- 3. STORE THE NEW IDENTITY ---
+        await storeIdentity(ADMIN_ID, hospitalAdminIdentity);
 
-        console.log('✅ Successfully registered & enrolled "hospitalAdmin" into the wallet');
+        console.log(`\n--- ✅ Successfully created and stored a fresh identity for ${ADMIN_ID} ---`);
 
     } catch (error) {
-        console.error(`❌ Failed to enroll hospitalAdmin: ${error}`);
+        console.error(`❌ Failed to enroll ${ADMIN_ID}: ${error}`);
         process.exit(1);
     }
 }

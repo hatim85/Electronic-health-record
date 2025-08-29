@@ -36,7 +36,7 @@ async function main() {
         // make sure hospitalAdmin (or org admin) exists in wallet
         const adminIdentity = await wallet.get('hospitalAdmin');
         if (!adminIdentity) {
-            console.log('hospitalAdmin identity not found in wallet. Run enrollAdmin first.');
+            console.log('hospitalAdmin identity not found in wallet. Run registerOrgAdmin first.');
             return;
         }
 
