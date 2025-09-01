@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import AppRouter from "./router/Index";
 

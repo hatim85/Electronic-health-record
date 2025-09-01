@@ -24,7 +24,7 @@ const invokeTransaction = async (fcn, args, userID, userRole) => {
     const orgID = roleToOrg[userRole];
     if (!orgID) throw new Error(`Invalid userRole: ${userRole}`);
 
-    const ccpPath = path.resolve(__dirname, '..', 'fabric-samples', 'test-network', 'organizations', 'peerOrganizations', `${orgID}.example.com`.toLowerCase(), `connection-${orgID}.json`.toLowerCase());
+    const ccpPath = path.resolve(__dirname, '../..', 'fabric-samples', 'test-network', 'organizations', 'peerOrganizations', `${orgID}.example.com`.toLowerCase(), `connection-${orgID}.json`.toLowerCase());
     const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
 
     // Retrieve identity directly from Pinata

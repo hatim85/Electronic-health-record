@@ -3,7 +3,6 @@ import { registerDoctor } from "../../services/hospitalService";
 import { useAuth } from "../../context/useAuth";
 
 const RegisterDoctor = () => {
-  const { user } = useAuth();
   const [form, setForm] = useState({
     hospitalId: "",
     doctorId: "",
@@ -21,7 +20,6 @@ const RegisterDoctor = () => {
       await registerDoctor({ ...form });
       alert("Doctor registered successfully!");
       setForm({
-        hospitalId: "",
         doctorId: "",
         name: "",
         specialization: "",

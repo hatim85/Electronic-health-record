@@ -5,9 +5,8 @@ const path = require('path');
 const fs = require('fs');
 const PinataWallet = require('./pinataWallet.js'); // Import the new wallet handler
 
-const getQuery = async (fcn, args, userId) => {
-    const orgID = 'Org1'; // Queries are typically directed to a specific org's peer
-    const ccpPath = path.resolve(__dirname, '..', 'fabric-samples', 'test-network', 'organizations', 'peerOrganizations', `${orgID}.example.com`.toLowerCase(), `connection-${orgID}.json`.toLowerCase());
+const getQuery = async (fcn, args, userId,orgID) => {
+    const ccpPath = path.resolve(__dirname, '../..', 'fabric-samples', 'test-network', 'organizations', 'peerOrganizations', `${orgID}.example.com`.toLowerCase(), `connection-${orgID}.json`.toLowerCase());
     const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
 
     console.log(`Using userId: ${userId} for query`);

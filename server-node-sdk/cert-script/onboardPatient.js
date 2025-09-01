@@ -32,14 +32,14 @@ async function main() {
             return;
         }
 
-        const adminIdentity = await wallet.get('hospitalAdmin');
+        const adminIdentity = await wallet.get('superAdmin');
         if (!adminIdentity) {
-            console.log('hospitalAdmin identity not found in wallet. Run registerOrgAdmin first.');
+            console.log('superAdmin identity not found in wallet. Run registerOrgAdmin first.');
             return;
         }
 
         const provider = wallet.getProviderRegistry().getProvider(adminIdentity.type);
-        const adminUser = await provider.getUserContext(adminIdentity, 'hospitalAdmin');
+        const adminUser = await provider.getUserContext(adminIdentity, 'superAdmin');
 
         const secret = await ca.register({
             affiliation: 'org1.department1',

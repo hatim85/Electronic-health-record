@@ -5,10 +5,11 @@ const path = require("path");
 const FabricCAServices = require("fabric-ca-client");
 const { Wallets, Gateway } = require("fabric-network");
 const PinataWallet = require('./pinataWallet.js'); // Import the new wallet handler
+const forge=require('node-forge');
 
 // Role → Org mapping (remains the same)
 const roleToOrg = {
-  hospitalAdmin: "Org1",
+  superAdmin: "Org1",
   hospital: "Org1",
   diagnostics: "Org1",
   doctor: "Org1",
@@ -23,7 +24,7 @@ const roleToOrg = {
 
 // Org → Admin identity mapping (remains the same)
 const orgToAdminID = {
-  Org1: "hospitalAdmin",
+  Org1: "superAdmin",
   Org2: "researchAdmin",
 };
 
@@ -37,7 +38,7 @@ const registerUser = async (enrollId, userID, userRole, args) => {
     }
 
     // Load CCP
-    const ccpPath = path.resolve(__dirname, "..", "fabric-samples", "test-network", "organizations", "peerOrganizations", `${orgID}.example.com`.toLowerCase(), `connection-${orgID}.json`.toLowerCase());
+    const ccpPath = path.resolve(__dirname, "../..", "fabric-samples", "test-network", "organizations", "peerOrganizations", `${orgID}.example.com`.toLowerCase(), `connection-${orgID}.json`.toLowerCase());
     const ccp = JSON.parse(fs.readFileSync(ccpPath, "utf8"));
     const orgMSP = ccp.organizations[orgID].mspid;
 
@@ -98,7 +99,7 @@ const registerUser = async (enrollId, userID, userRole, args) => {
             mspId: orgMSP,
             type: "X.509",
         };
-        await PinataWallet.storeIdentity(userID, x509Identity);
+        await PinataWallet.storeIdentity(userID, x509Identity,userRole);
     }
 
     // --- Chaincode Submission Logic ---
@@ -111,7 +112,7 @@ const registerUser = async (enrollId, userID, userRole, args) => {
     } else if (userRole === "insuranceAgent" || userRole === "insuranceCompany") {
         submitterIdentityName = "insuranceAdmin";
     } else if (userRole === "hospital") {
-        submitterIdentityName = "hospitalAdmin";
+        submitterIdentityName = "superAdmin";
     } else {
         submitterIdentityName = userID;
     }
@@ -176,20 +177,56 @@ const registerUser = async (enrollId, userID, userRole, args) => {
     };
 };
 
+// const login = async (userID) => {
+//     console.log(`Logging in user ${userID}...`);
+//     // Check if the user's identity exists on Pinata
+//     const identity = await PinataWallet.retrieveIdentity(userID);
+//     console.log(`Retrieved identity for ${userID} from Pinata:`, identity);
+
+//     if (!identity) {
+//         return { statusCode: 404, message: `Identity for ${userID} not found.` };
+//     }
+
+//     return {
+//         statusCode: 200,
+//         userID,
+//         message: `Login successful for ${userID}`,
+//     };
+// };
+
 const login = async (userID) => {
     console.log(`Logging in user ${userID}...`);
-    // Check if the user's identity exists on Pinata
+
+    // Step 1: Retrieve identity from Pinata
     const identity = await PinataWallet.retrieveIdentity(userID);
 
     if (!identity) {
         return { statusCode: 404, message: `Identity for ${userID} not found.` };
     }
 
+    console.log(`✅ Successfully retrieved identity for ${userID} from Pinata.`);
+
+    // Step 2: Verify userID and get role
+    const storedUserID = identity.userID || userID;
+    const userRole = identity.role || 'unknown';
+    console.log("identity: ",identity);
+    if (storedUserID !== userID) {
+        console.warn(`⚠️ Requested userID (${userID}) does not match stored userID (${storedUserID})`);
+    }
+
+    if (userRole === 'unknown') {
+        console.warn(`⚠️ Role not found for user ${userID} in Pinata, defaulting to 'unknown'`);
+    }
+
+    // Step 3: Return safe info to client
     return {
         statusCode: 200,
-        userID,
+        userID: storedUserID,
+        userRole,
         message: `Login successful for ${userID}`,
     };
 };
+
+
 
 module.exports = { registerUser, login };

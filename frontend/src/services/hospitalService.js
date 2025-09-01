@@ -1,13 +1,14 @@
 import api from "./api";
-
+import { userId, userRole } from "../context/authUser";
 // ============================
 // HOSPITAL SERVICE (matches backend routes)
 // ============================
 
+
 // 🔹 Login Hospital
 export const loginHospital = async (hospitalId) => {
   try {
-    const res = await api.post("/hospital/login", { hospitalId });
+    const res = await api.post("/hospital/login", { hospitalId,userId,userRole });
     return res.data;
   } catch (err) {
     throw err.response?.data || { error: "Hospital login failed" };
@@ -21,6 +22,8 @@ export const registerHospital = async ({ hospitalId, name, city }) => {
       hospitalId,
       name,
       city,
+      userId,
+      userRole
     });
     return res.data;
   } catch (err) {
@@ -45,6 +48,8 @@ export const registerPatient = async ({
       dob,
       gender,
       city,
+      userId,
+      userRole
     });
     return res.data;
   } catch (err) {
@@ -67,6 +72,8 @@ export const registerDoctor = async ({
       name,
       specialization,
       city,
+      userId,
+      userRole
     });
     return res.data;
   } catch (err) {
@@ -88,6 +95,8 @@ export const updateDoctor = async ({
       name,
       specialization,
       city,
+      userId,
+      userRole
     });
     return res.data;
   } catch (err) {
@@ -99,7 +108,7 @@ export const updateDoctor = async ({
 export const deleteDoctor = async ({ doctorId, hospitalId }) => {
   try {
     const res = await api.delete(`/hospital/doctor/${doctorId}`, {
-      data: { hospitalId }, // axios allows sending body with DELETE via `data`
+      data: { hospitalId,userId,userRole }, // axios allows sending body with DELETE via `data`
     });
     return res.data;
   } catch (err) {
@@ -108,9 +117,9 @@ export const deleteDoctor = async ({ doctorId, hospitalId }) => {
 };
 
 // 🔹 Get all doctors in a hospital
-export const getDoctorsByHospital = async (hospitalId) => {
+export const getDoctorsByHospital = async () => {
   try {
-    const res = await api.get(`/hospital/doctors/${hospitalId}`);
+    const res = await api.get(`/hospital/doctors/${userId}`);
     console.log("res: ", res);
     return res.data;
   } catch (err) {
@@ -119,9 +128,9 @@ export const getDoctorsByHospital = async (hospitalId) => {
 };
 
 // 🔹 Get all patients in a hospital
-export const getPatientsByHospital = async (hospitalId) => {
+export const getPatientsByHospital = async () => {
   try {
-    const res = await api.get(`/hospital/patients/${hospitalId}`);
+    const res = await api.get(`/hospital/patients/${userId}`);
     return res.data;
   } catch (err) {
     throw err.response?.data || { error: "Fetching patients failed" };
@@ -141,6 +150,8 @@ export const registerDiagnostic = async ({
       diagnosticsId,
       name,
       city,
+      userId,
+      userRole
     });
     return res.data;
   } catch (err) {
@@ -163,6 +174,8 @@ export const registerPharmacy = async ({
       pharmacyId,
       name,
       city,
+      userId,
+      userRole
     });
     return res.data;
   } catch (err) {

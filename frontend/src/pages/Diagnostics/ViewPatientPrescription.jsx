@@ -3,8 +3,7 @@ import { getPatientPrescription } from "../../services/diagnosticsService";
 
 export default function ViewPatientPrescription() {
   const [formData, setFormData] = useState({
-    labId: "",
-    patientId: "",
+    patientId: ""
   });
   const [reports, setReports] = useState([]); // <-- change to array
   const [loading, setLoading] = useState(false);
@@ -16,12 +15,12 @@ export default function ViewPatientPrescription() {
 
   const handleFetch = async (e) => {
     e.preventDefault();
-    if (!formData.labId || !formData.patientId) return;
+    if (!formData.patientId) return;
 
     setLoading(true);
     setMessage(null);
     try {
-      const res = await getPatientPrescription(formData.labId, formData.patientId);
+      const res = await getPatientPrescription(formData.patientId);
       console.log("API Response:", res);
       setReports(Array.isArray(res) ? res : [res]); // normalize to array
       if (!res || res.length === 0) setMessage("No prescription found.");
@@ -41,16 +40,6 @@ export default function ViewPatientPrescription() {
       {message && <p className="mb-3 text-blue-600">{message}</p>}
 
       <form onSubmit={handleFetch} className="space-y-4">
-        <input
-          type="text"
-          name="labId"
-          placeholder="Lab ID"
-          value={formData.labId}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border rounded-lg"
-          required
-        />
-
         <input
           type="text"
           name="patientId"

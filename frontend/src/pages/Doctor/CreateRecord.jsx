@@ -3,7 +3,6 @@ import { createPatientRecord } from "../../services/doctorService";
 
 export default function CreateRecord() {
   const [formData, setFormData] = useState({
-    doctorId: "",
     patientId: "",
     diagnosis: "",
     prescription: "",
@@ -30,14 +29,6 @@ export default function CreateRecord() {
       {message && <p className="mb-3 text-blue-600">{message}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          name="doctorId"
-          placeholder="Doctor ID"
-          value={formData.doctorId}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border rounded-lg"
-          required
-        />
         <input
           name="patientId"
           placeholder="Patient ID"

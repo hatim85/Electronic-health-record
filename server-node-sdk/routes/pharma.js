@@ -2,24 +2,24 @@
 'use strict';
 
 const express = require('express');
-const { getQuery } = require('../query');
-const { invokeTransaction } = require('../invoke');
+const { getQuery } = require('../utils/query');
+const { invokeTransaction } = require('../utils/invoke');
 
 const router = express.Router();
 
 /**
  * Get patient prescription by patientId
  */
-router.get('/prescription/:pharmacyId/:patientId', async (req, res) => {
+router.get('/prescription/:userId/:patientId', async (req, res) => {
     try {
-        const { pharmacyId, patientId } = req.params;
+        const { userId, patientId } = req.params;
 
-        if (!pharmacyId || !patientId) {
+        if (!userId || !patientId) {
             return res.status(400).json({ error: 'pharmacyId and patientId are required' });
         }
 
         const args = { patientId };
-        const result = await getQuery('getPatientPrescription', args, pharmacyId);
+        const result = await getQuery('getPatientPrescription', args, userId,'Org1');
         res.json(result);
     } catch (error) {
         console.error('Error fetching prescription:', error);
@@ -32,14 +32,14 @@ router.get('/prescription/:pharmacyId/:patientId', async (req, res) => {
  */
 router.post('/updateStock', async (req, res) => {
     try {
-        const { pharmacyId, medicineName, newStock } = req.body;
+        const { userId, userRole, medicineName, newStock } = req.body;
 
-        if (!pharmacyId || !medicineName || newStock == null) {
+        if (!userId || !medicineName || newStock == null) {
             return res.status(400).json({ error: 'pharmacyId, medicineName, and newStock are required' });
         }
 
         const args = { medicineName, newStock };
-        const result = await invokeTransaction('updateMedicineStock', args, pharmacyId,'pharmacy');
+        const result = await invokeTransaction('updateMedicineStock', args, userId,userRole);
         res.json(result);
     } catch (error) {
         console.error('Error updating stock:', error);
@@ -52,7 +52,7 @@ router.post('/updateStock', async (req, res) => {
  */
 router.post('/dispense', async (req, res) => {
     try {
-        const { pharmacyId, patientId, recordId, medicineName, quantity } = req.body;
+        const { userId, userRole, patientId, recordId, medicineName, quantity } = req.body;
 
         // Validate inputs
         if (!pharmacyId || !patientId || !recordId || !medicineName || !quantity) {
@@ -65,7 +65,7 @@ router.post('/dispense', async (req, res) => {
         const args = { patientId, recordId, medicineName, quantity };
 
         // Call chaincode with pharmacy identity
-        const result = await invokeTransaction('dispenseMedicine', args, pharmacyId, 'pharmacy');
+        const result = await invokeTransaction('dispenseMedicine', args, userId, userRole);
 
         res.json(result);
     } catch (error) {

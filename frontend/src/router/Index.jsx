@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useNavigate, Navigate } from "react-router-dom";
 import Dashboard from "../pages/Dashboard";
 
 // Doctor
@@ -54,8 +54,11 @@ import RegisterResearcher from "../pages/Researcher/RegisterResearcher";
 import UpdateDoctor from "../pages/Hospital/UpdateDoctor";
 import ViewPatientPrescription from "../pages/Diagnostics/ViewPatientPrescription";
 import MyClaims from "../pages/Patient/MyClaims";
+import { useAuth } from "../context/useAuth";
 
 export default function AppRouter() {
+  const {user}=useAuth();
+
   return (
     <Router>
       <Routes>
@@ -63,6 +66,10 @@ export default function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
+        {!user ? (
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        ) : (
+        <>
         {/* Common Dashboard */}
         <Route path="/" element={<Dashboard />} />
 
@@ -116,6 +123,8 @@ export default function AppRouter() {
         <Route path="/researcher/lab-reports" element={<AllLabReports />} />
         <Route path="/researcher/process-data" element={<ProcessData />} />
         <Route path="/researcher/register-researcher" element={<RegisterResearcher />} />
+        </>
+        )}
       </Routes>
     </Router>
   );

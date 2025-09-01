@@ -1,9 +1,9 @@
 "use strict";
 
 const express = require("express");
-const { invokeTransaction } = require("../invoke");
-const { getQuery } = require("../query");
-const { registerUser } = require("../helper");
+const { invokeTransaction } = require("../utils/invoke");
+const { getQuery } = require("../utils/query");
+const { registerUser } = require("../utils/helper");
 
 const router = express.Router();
 
@@ -13,7 +13,7 @@ const router = express.Router();
  */
 router.post("/register", async (req, res) => {
   try {
-    const { agentId, insuranceCompany, name, city } = req.body;
+    const { userId,userRole,agentId, insuranceCompany, name, city } = req.body;
 
     if (!agentId || !insuranceCompany || !name || !city) {
       return res
@@ -25,7 +25,7 @@ router.post("/register", async (req, res) => {
 
     // Register insurance agent identity in CA (Org2)
     const registerRes = await registerUser(
-      "insuranceAdmin", // Org2 admin handles registration
+      userId, // Org2 admin handles registration
       agentId, // user ID
       "insuranceAgent", // role
       { insuranceCompany, name, city }
@@ -49,7 +49,8 @@ router.post("/register", async (req, res) => {
 router.post("/issue", async (req, res) => {
   try {
     const {
-      insuranceId,
+      userId,
+      userRole,
       patientId,
       policyNumber,
       coverageAmount,
@@ -57,7 +58,7 @@ router.post("/issue", async (req, res) => {
     } = req.body;
 
     if (
-      !insuranceId ||
+      !userId ||
       !patientId ||
       !policyNumber ||
       !coverageAmount ||
@@ -72,7 +73,7 @@ router.post("/issue", async (req, res) => {
     }
 
     const args = {
-      insuranceId,
+      userId,
       patientId,
       policyNumber,
       coverageAmount,
@@ -83,8 +84,8 @@ router.post("/issue", async (req, res) => {
     const result = await invokeTransaction(
       "issueInsurance",
       args,
-      insuranceId,
-      "insuranceAgent"
+      userId,
+      userRole
     );
     res.json(result);
   } catch (error) {
@@ -96,15 +97,16 @@ router.post("/issue", async (req, res) => {
 /**
  * Get all claims for an insurance company
  */
-router.get("/claims/:insuranceCompany", async (req, res) => {
+router.get("/claims/:userId", async (req, res) => {
   try {
-    const { insuranceCompany,role } = req.params;
-    const args = { insuranceCompany };
+    const { userId,role } = req.params;
+    const args = { insuranceCompany: userId };
 
     const result = await getQuery(
       "getAllClaimsByInsurance",
       args,
-      "insuranceAdmin"
+      userId,
+      'Org2'
     );
     res.json(result);
   } catch (error) {
@@ -118,9 +120,9 @@ router.get("/claims/:insuranceCompany", async (req, res) => {
  */
 router.post("/approveClaim", async (req, res) => {
   try {
-    const { insuranceId, claimId, patientId } = req.body;
+    const { userId,userRole, claimId, patientId } = req.body;
 
-    if (!insuranceId || !claimId || !patientId) {
+    if (!userId || !claimId || !patientId) {
       return res
         .status(400)
         .json({ error: "insuranceId, claimId, and patientId are required" });
@@ -130,8 +132,8 @@ router.post("/approveClaim", async (req, res) => {
     const result = await invokeTransaction(
       "approveClaim",
       args,
-      insuranceId,
-      "insuranceAdmin"
+      userId,
+      userRole
     );
     res.json(result);
   } catch (error) {
@@ -146,7 +148,7 @@ router.post("/approveClaim", async (req, res) => {
  */
 router.post("/onboard", async (req, res) => {
   try {
-    const { companyId, name, city } = req.body;
+    const { userId,companyId, name, city } = req.body;
     console.log("Onboarding insurance company:", req.body);
 
     if (!companyId || !name || !city) {
@@ -159,7 +161,7 @@ router.post("/onboard", async (req, res) => {
 
     // Correct call to registerUser
     const result = await registerUser(
-      'insuranceAdmin',               // enrollId → let orgToAdminID handle it
+      userId,               // enrollId → let orgToAdminID handle it
       companyId,          // userID
       "insuranceCompany", // userRole
       args                // metadata

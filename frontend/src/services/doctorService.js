@@ -1,12 +1,12 @@
 // services/doctorService.js
 import api from "./api";
-
+import { userId, userRole } from "../context/authUser";
 /**
  * Doctor Login
  */
 export const doctorLogin = async (doctorId) => {
   try {
-    const res = await api.post("/login", { doctorId });
+    const res = await api.post("/login", { userId, userRole});
     return res.data;
   } catch (error) {
     throw error.response?.data || { error: "Doctor login failed" };
@@ -16,10 +16,11 @@ export const doctorLogin = async (doctorId) => {
 /**
  * Create Patient Record
  */
-export const createPatientRecord = async ({ doctorId, patientId, diagnosis, prescription }) => {
+export const createPatientRecord = async ({ patientId, diagnosis, prescription }) => {
   try {
     const res = await api.post("/doctor/patientRecord", {
-      doctorId,
+      userId,
+      userRole,
       patientId,
       diagnosis,
       prescription,
@@ -33,10 +34,11 @@ export const createPatientRecord = async ({ doctorId, patientId, diagnosis, pres
 /**
  * Update Patient Record
  */
-export const updatePatientRecord = async ({ doctorId, recordId, patientId, diagnosis, prescription }) => {
+export const updatePatientRecord = async ({ recordId, patientId, diagnosis, prescription }) => {
   try {
     const res = await api.put("/doctor/patientRecord", {
-      doctorId,
+      userId,
+      userRole,
       recordId,
       patientId,
       diagnosis,
@@ -51,10 +53,11 @@ export const updatePatientRecord = async ({ doctorId, recordId, patientId, diagn
 /**
  * Upload Patient Description
  */
-export const uploadPatientDescription = async ({ doctorId, patientId, description }) => {
+export const uploadPatientDescription = async ({ patientId, description }) => {
   try {
     const res = await api.post("/doctor/patientDescription", {
-      doctorId,
+      userId,
+      userRole,
       patientId,
       description,
     });
@@ -67,9 +70,9 @@ export const uploadPatientDescription = async ({ doctorId, patientId, descriptio
 /**
  * Get All Patients Treated by Doctor
  */
-export const getPatientsByDoctor = async (doctorId) => {
+export const getPatientsByDoctor = async () => {
   try {
-    const res = await api.get(`/doctor/patients/${doctorId}`);
+    const res = await api.get(`/doctor/patients/${userId}`);
     console.log('Fetched patients:', res.data);
     return res.data;
   } catch (error) {

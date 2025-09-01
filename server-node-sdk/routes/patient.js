@@ -2,8 +2,8 @@
 'use strict';
 
 const express = require('express');
-const { invokeTransaction } = require('../invoke');
-const { getQuery } = require('../query');
+const { invokeTransaction } = require('../utils/invoke');
+const { getQuery } = require('../utils/query');
 
 const router = express.Router();
 
@@ -12,14 +12,14 @@ const router = express.Router();
  */
 router.post('/grantAccess', async (req, res) => {
     try {
-        const { entityId, entityRole, patientId } = req.body;
-
-        if (!entityId || !entityRole || !patientId) {
+        const { entityId, entityRole, userId, userRole } = req.body;
+        const patientId = userId; 
+        if (!entityId || !entityRole || !userId) {
             return res.status(400).json({ error: 'userId, userRole, patientId and doctorIdToGrant are required' });
         }
 
-        const args = { patientId, entityId, entityRole };
-        const result = await invokeTransaction('grantAccess', args, patientId, "patient");
+        const args = { userId, entityId, entityRole, patientId };
+        const result = await invokeTransaction('grantAccess', args, userId, userRole);
         res.json(result);
     } catch (error) {
         console.error('Error granting access to doctor:', error);
@@ -31,17 +31,16 @@ router.post('/grantAccess', async (req, res) => {
 /**
  * Get patient prescription
  */
-router.get('/prescriptions/:patientId', async (req, res) => {
+router.get('/prescriptions/:userId', async (req, res) => {
     try {
-        const { patientId } = req.params;
-        const { userId } = req.query;
+        const { userId } = req.params;
 
         if (!userId) {
             return res.status(400).json({ error: 'userId is required' });
         }
 
-        const args = { patientId };
-        const result = await getQuery('getPatientPrescription', args, userId);
+        const args = { patientId: userId };
+        const result = await getQuery('getPatientPrescription', args, userId,'Org1');
         res.json(result);
     } catch (error) {
         console.error('Error fetching prescriptions:', error);
@@ -52,17 +51,16 @@ router.get('/prescriptions/:patientId', async (req, res) => {
 /**
  * Get patient lab reports
  */
-router.get('/reports/:patientId', async (req, res) => {
+router.get('/reports/:userId', async (req, res) => {
     try {
-        const { patientId } = req.params;
-        const { userId } = req.query;
+        const { userId } = req.params;
 
         if (!userId) {
             return res.status(400).json({ error: 'userId is required' });
         }
 
-        const args = { patientId };
-        const result = await getQuery('getReportsByPatientId', args, userId);
+        const args = { patientId:userId };
+        const result = await getQuery('getReportsByPatientId', args, userId,'Org1');
         res.json(result);
     } catch (error) {
         console.error('Error fetching reports:', error);
@@ -73,17 +71,16 @@ router.get('/reports/:patientId', async (req, res) => {
 /**
  * Get all treatment history
  */
-router.get('/history/:patientId', async (req, res) => {
+router.get('/history/:userId', async (req, res) => {
     try {
-        const { patientId } = req.params;
-        const { userId } = req.query;
+        const { userId } = req.params;
 
         if (!userId) {
             return res.status(400).json({ error: 'userId is required' });
         }
 
-        const args = { patientId };
-        const result = await getQuery('getAllTreatmentHistory', args, userId);
+        const args = { patientId:userId };
+        const result = await getQuery('getAllTreatmentHistory', args, userId,'Org1');
         res.json(result);
     } catch (error) {
         console.error('Error fetching treatment history:', error);
@@ -96,14 +93,14 @@ router.get('/history/:patientId', async (req, res) => {
  */
 router.post('/requestClaim', async (req, res) => {
     try {
-        const { patientId, policyNumber, amount, reason } = req.body;
+        const { userId, userRole, policyNumber, amount, reason } = req.body;
 
-        if (!patientId || !policyNumber || !amount || !reason) {
+        if (!userId || !policyNumber || !amount || !reason) {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
         const args = { policyNumber, amount, reason };
-        const result = await invokeTransaction('createClaim', args, patientId, 'patient');
+        const result = await invokeTransaction('createClaim', args, userId, userRole);
         res.json(result);
     } catch (error) {
         console.error('Error requesting claim:', error);
@@ -114,17 +111,16 @@ router.post('/requestClaim', async (req, res) => {
 /**
  * Get all claims for a patient
  */
-router.get('/claims/:patientId', async (req, res) => {
+router.get('/claims/:userId', async (req, res) => {
     try {
-        const { patientId } = req.params;
-        const { userId } = req.query;
+        const { userId } = req.params;
 
         if (!userId) {
             return res.status(400).json({ error: 'userId is required' });
         }
 
-        const args = { patientId };
-        const result = await getQuery('getAllClaimsByPatient', args, userId);
+        const args = { patientId:userId };
+        const result = await getQuery('getAllClaimsByPatient', args, userId,'Org2');
         res.json(result);
     } catch (error) {
         console.error('Error fetching patient claims:', error);
@@ -136,40 +132,19 @@ router.get('/claims/:patientId', async (req, res) => {
 /**
  * Get reward/token balance
  */
-router.get('/rewards/:patientId', async (req, res) => {
+router.get('/rewards/:userId', async (req, res) => {
     try {
-        const { patientId } = req.params;
-        const { userId } = req.query;
+        const { userId } = req.params;
 
         if (!userId) {
             return res.status(400).json({ error: 'userId is required' });
         }
 
-        const args = { patientId };
-        const result = await getQuery('getRewardBalance', args, userId);
+        const args = { patientId:userId };
+        const result = await getQuery('getRewardBalance', args, userId,'Org1');
         res.json(result);
     } catch (error) {
         console.error('Error fetching reward balance:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-/**
- * Use reward/token in treatment
- */
-router.post('/useReward', async (req, res) => {
-    try {
-        const { userId, patientId, treatmentId, amount } = req.body;
-
-        if (!userId || !patientId || !treatmentId || !amount) {
-            return res.status(400).json({ error: 'All fields are required' });
-        }
-
-        const args = { patientId, treatmentId, amount };
-        const result = await invokeTransaction('useReward', args, userId);
-        res.json(result);
-    } catch (error) {
-        console.error('Error using reward:', error);
         res.status(500).json({ error: error.message });
     }
 });

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { requestClaim } from "../../services/patientService";
 
 export default function RequestClaim() {
-  const [form, setForm] = useState({ patientId: "", policyNumber: "", amount: "", reason: "" });
+  const [form, setForm] = useState({ policyNumber: "", amount: "", reason: "" });
   const [message, setMessage] = useState("");
 
   const handleSubmit = async (e) => {
@@ -19,7 +19,6 @@ export default function RequestClaim() {
     <div className="p-6">
       <h2 className="text-xl font-bold">Request Claim</h2>
       <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-        <input placeholder="Patient ID" className="border p-2" value={form.patientId} onChange={(e) => setForm({ ...form, patientId: e.target.value })} />
         <input placeholder="Policy Number" className="border p-2" value={form.policyNumber} onChange={(e) => setForm({ ...form, policyNumber: e.target.value })} />
         <input placeholder="Amount" className="border p-2" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
         <input placeholder="Reason" className="border p-2" value={form.reason} onChange={(e) => setForm({ ...form, reason: e.target.value })} />

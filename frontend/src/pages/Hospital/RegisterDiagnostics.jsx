@@ -4,8 +4,9 @@ import { useAuth } from "../../context/useAuth";
 
 const RegisterDiagnostics = () => {
   const { user } = useAuth();
+  
   const [form, setForm] = useState({
-    hospitalId: "",
+    hospitalId:"",
     diagnosticsId: "",
     name: "",
     city: "",
@@ -29,7 +30,7 @@ const RegisterDiagnostics = () => {
     <div className="p-6">
       <h1 className="text-2xl font-bold">🧪 Register Diagnostic Center</h1>
       <form className="mt-4 space-y-4" onSubmit={handleSubmit}>
-        <input
+         <input
           name="hospitalId"
           value={form.hospitalId}
           onChange={handleChange}

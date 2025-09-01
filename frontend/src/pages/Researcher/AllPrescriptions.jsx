@@ -3,7 +3,6 @@ import { getAllPrescriptions } from "../../services/researcherService";
 import { Card, CardContent } from "../../components/Card";
 
 export default function AllPrescriptions() {
-  const [researcherId, setResearcherId] = useState("");
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -12,7 +11,7 @@ export default function AllPrescriptions() {
     try {
       setLoading(true);
       setError("");
-      const data = await getAllPrescriptions(researcherId);
+      const data = await getAllPrescriptions();
       console.log("Fetched prescriptions data:", data);
       setPrescriptions(Array.isArray(data) ? data : data.prescriptions || []);
     } catch (err) {
@@ -25,13 +24,6 @@ export default function AllPrescriptions() {
   return (
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">All Prescriptions</h1>
-      <input
-        type="text"
-        placeholder="Enter Researcher ID"
-        value={researcherId}
-        onChange={(e) => setResearcherId(e.target.value)}
-        className="border p-2 rounded mr-2"
-      />
       <button
         onClick={fetchPrescriptions}
         className="bg-blue-600 text-white px-4 py-2 rounded"

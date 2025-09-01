@@ -1,21 +1,22 @@
 // services/diagnosticsService.js
 import api from "./api";
+import { userId, userRole } from "../context/authUser";
 
 /**
  * Get Patient Prescription by Patient ID
  */
-export const getPatientPrescription = async (labId, patientId) => {
+export const getPatientPrescription = async (patientId) => {
   try {
-    const res = await api.get(`/diagnostics/prescription/${labId}/${patientId}`);
+    const res = await api.get(`/diagnostics/prescription/${userId}/${patientId}`);
     return res.data;
   } catch (error) {
     throw error.response?.data || { error: "Failed to fetch patient prescription" };
   }
 };
 
-export const getAllLabReports = async (labId) => {
+export const getAllLabReports = async () => {
   try {
-    const res = await api.get(`/diagnostics/labReports/${labId}`);
+    const res = await api.get(`/diagnostics/labReports/${userId}`);
     console.log("res:", res);
     return res.data;
   } catch (error) {
@@ -26,10 +27,11 @@ export const getAllLabReports = async (labId) => {
 /**
  * Upload Patient Lab Report
  */
-export const uploadLabReport = async ({ labId, patientId, reportType, reportData }) => {
+export const uploadLabReport = async ({ patientId, reportType, reportData }) => {
   try {
     const res = await api.post(`/diagnostics/labReport`, {
-      labId,
+      userId,
+      userRole,
       patientId,
       reportType,
       reportData,

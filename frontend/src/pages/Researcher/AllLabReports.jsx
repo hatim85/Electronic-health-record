@@ -3,7 +3,6 @@ import { getAllLabReports } from "../../services/researcherService";
 import { Card, CardContent } from "../../components/Card";
 
 export default function AllLabReports() {
-  const [researcherId, setResearcherId] = useState("");
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -12,7 +11,7 @@ export default function AllLabReports() {
     try {
       setLoading(true);
       setError("");
-      const data = await getAllLabReports(researcherId);
+      const data = await getAllLabReports();
       console.log("Fetched lab reports data:", data);
       setReports(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -25,13 +24,6 @@ export default function AllLabReports() {
   return (
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">All Lab Reports</h1>
-      <input
-        type="text"
-        placeholder="Enter Researcher ID"
-        value={researcherId}
-        onChange={(e) => setResearcherId(e.target.value)}
-        className="border p-2 rounded mr-2"
-      />
       <button
         onClick={fetchReports}
         className="bg-blue-600 text-white px-4 py-2 rounded"

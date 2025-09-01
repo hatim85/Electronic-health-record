@@ -3,7 +3,6 @@ import { Card, CardContent } from "../../components/Card";
 import { getPatientPrescription } from "../../services/pharmaService";
 
 export default function PharmaDashboard() {
-  const [pharmacyId, setPharmacyId] = useState(""); // Example ID
   const [patientId, setPatientId] = useState("");
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -17,7 +16,7 @@ export default function PharmaDashboard() {
     try {
       setLoading(true);
       setError("");
-      const data = await getPatientPrescription(pharmacyId, patientId);
+      const data = await getPatientPrescription(patientId);
       console.log("Fetched prescription data:", data);
       setPrescriptions(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -31,13 +30,6 @@ export default function PharmaDashboard() {
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">Pharmacy Dashboard</h1>
       <div className="flex gap-2 mb-4">
-        <input
-          type="text"
-          placeholder="Enter Pharmacy ID"
-          value={pharmacyId}
-          onChange={(e) => setPharmacyId(e.target.value)}
-          className="border p-2 rounded"
-        />
         <input
           type="text"
           placeholder="Enter Patient ID"

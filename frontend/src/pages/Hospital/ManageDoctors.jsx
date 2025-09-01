@@ -4,16 +4,17 @@ import {
   deleteDoctor,
 } from "../../services/hospitalService";
 import { useAuth } from "../../context/useAuth";
+import { userId, userRole } from "../../context/authUser";
 
 const ManageDoctors = () => {
   const { user } = useAuth();
   const [doctors, setDoctors] = useState([]);
-
+  console.log("user: ", userId,"userRole: ",userRole);
   useEffect(() => {
     console.log("user: ", user);
     const fetchDoctors = async () => {
       try {
-        const res = await getDoctorsByHospital("Hospital01");
+        const res = await getDoctorsByHospital();
         console.log("res: ", res);
         setDoctors(res);
       } catch (err) {

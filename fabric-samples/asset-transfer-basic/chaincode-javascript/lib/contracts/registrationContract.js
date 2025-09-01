@@ -118,7 +118,7 @@ async function registerHospital(ctx, args) {
     const orgMSP = ctx.clientIdentity.getMSPID();
 
     // ✅ Access control: Only hospital admins from Org1 can register hospitals
-    if (orgMSP !== 'Org1MSP' || caller.role !== 'hospitalAdmin') {
+    if (orgMSP !== 'Org1MSP' || caller.role !== 'superAdmin') {
         throw new Error('Only hospital admins (Org1) can register hospitals');
     }
 
@@ -229,6 +229,7 @@ async function createDiagnosticsCenter(ctx, args) {
         diagnosticsId: args.diagnosticsId,
         name: args.name,
         city: args.city || '',
+        hospitalId: args.hospitalId || '',
         createdAt: new Date(
             ctx.stub.getTxTimestamp().seconds.low * 1000
         ).toISOString(),

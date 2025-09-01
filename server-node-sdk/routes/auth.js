@@ -1,7 +1,7 @@
 "use strict";
 
 const express = require("express");
-const { login, registerUser } = require("../helper");
+const { login, registerUser } = require("../utils/helper");
 
 const router = express.Router();
 

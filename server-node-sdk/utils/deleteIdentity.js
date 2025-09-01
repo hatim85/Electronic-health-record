@@ -18,13 +18,13 @@ async function deleteIdentity(userId) {
     const ca = new FabricCAServices(caInfo.url);
 
     // Get admin identity
-    const adminIdentity = await wallet.get('hospitalAdmin');
+    const adminIdentity = await wallet.get('superAdmin');
     if (!adminIdentity) {
-        throw new Error('❌ Admin identity "hospitalAdmin" not found in wallet');
+        throw new Error('❌ Admin identity "superAdmin" not found in wallet');
     }
 
     const provider = wallet.getProviderRegistry().getProvider(adminIdentity.type);
-    const adminUser = await provider.getUserContext(adminIdentity, 'hospitalAdmin');
+    const adminUser = await provider.getUserContext(adminIdentity, 'superAdmin');
 
     // Step 1: Revoke identity from CA
     try {

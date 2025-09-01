@@ -12,10 +12,10 @@ const fs = require('fs');
 const path = require('path');
 
 // ⬇️ Import the necessary functions from your Pinata helpers
-const { storeIdentity, findCidByUserId } = require('../pinataWallet.js'); // Adjust path if needed
-const { pinataClient } = require('../pinataClient.js'); // Adjust path if needed
+const { storeIdentity, findCidByUserId } = require('../utils/pinataWallet.js'); // Adjust path if needed
+const { pinataClient } = require('../utils/pinataClient.js'); // Adjust path if needed
 
-const ADMIN_ID = 'hospitalAdmin';
+const ADMIN_ID = 'superAdmin';
 
 async function main() {
     try {
@@ -77,14 +77,14 @@ async function main() {
 
         const hospEnrollment = await ca.enroll({ enrollmentID: ADMIN_ID, enrollmentSecret: secret });
 
-        const hospitalAdminIdentity = {
+        const superAdminIdentity = {
             credentials: { certificate: hospEnrollment.certificate, privateKey: hospEnrollment.key.toBytes() },
             mspId: 'Org1MSP',
             type: 'X.509',
         };
 
         // --- 3. STORE THE NEW IDENTITY ---
-        await storeIdentity(ADMIN_ID, hospitalAdminIdentity);
+        await storeIdentity(ADMIN_ID, superAdminIdentity, 'superAdmin');
 
         console.log(`\n--- ✅ Successfully created and stored a fresh identity for ${ADMIN_ID} ---`);
 

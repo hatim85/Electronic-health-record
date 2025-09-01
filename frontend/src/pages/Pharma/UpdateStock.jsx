@@ -3,7 +3,6 @@ import { updateMedicineStock } from "../../services/pharmaService";
 
 export default function UpdateStock() {
   const [form, setForm] = useState({
-    pharmacyId: "",
     medicineName: "",
     newStock: "",
   });
@@ -28,13 +27,6 @@ export default function UpdateStock() {
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">Update Medicine Stock</h1>
       <form onSubmit={handleSubmit} className="grid gap-4 max-w-md">
-        <input
-          name="pharmacyId"
-          placeholder="Pharmacy ID"
-          value={form.pharmacyId}
-          onChange={handleChange}
-          className="border p-2 rounded"
-        />
         <input
           name="medicineName"
           placeholder="Medicine Name"

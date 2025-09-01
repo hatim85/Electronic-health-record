@@ -193,5 +193,5 @@ async function useReward(ctx, args) {
 module.exports = {
     grantAccess,
     createClaim,
-    useReward,
+    useReward
 };

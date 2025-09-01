@@ -2,9 +2,9 @@
 'use strict';
 
 const express = require('express');
-const { invokeTransaction } = require('../invoke');
-const { getQuery } = require('../query');
-const { login } = require('../helper');
+const { invokeTransaction } = require('../utils/invoke');
+const { getQuery } = require('../utils/query');
+const { login } = require('../utils/helper');
 
 const router = express.Router();
 
@@ -30,16 +30,16 @@ router.post('/login', async (req, res) => {
  */
 router.post('/patientRecord', async (req, res) => {
     try {
-        const { doctorId, patientId, diagnosis, prescription } = req.body;
+        const { userId, userRole, patientId, diagnosis, prescription } = req.body;
 
-        if (!doctorId || !patientId) {
+        if (!userId || !patientId) {
             return res.status(400).json({ error: 'doctorId, patientId are required' });
         }
 
         // prepare args for addRecord (doctorId comes from identity, not args)
         const args = { patientId, diagnosis, prescription: prescription || '' };
 
-        const result = await invokeTransaction('addRecord', args, doctorId,'doctor');
+        const result = await invokeTransaction('addRecord', args, userId,userRole);
         res.json(result);
     } catch (error) {
         console.error('Error creating patient record:', error);
@@ -53,14 +53,14 @@ router.post('/patientRecord', async (req, res) => {
  */
 router.put('/patientRecord', async (req, res) => {
     try {
-        const { doctorId, recordId,patientId, diagnosis, prescription } = req.body;
+        const { userId, userRole, recordId, patientId, diagnosis, prescription } = req.body;
 
-        if (!doctorId || !recordId) {
-            return res.status(400).json({ error: 'doctorId and recordId are required' });
+        if (!userId || !recordId) {
+            return res.status(400).json({ error: 'userId and recordId are required' });
         }
 
         const args = { doctorId, recordId, diagnosis: diagnosis,patientId, prescription: prescription || '' };
-        const result = await invokeTransaction('updatePatientRecord', args, doctorId,'doctor');
+        const result = await invokeTransaction('updatePatientRecord', args, userId, userRole);
         res.json(result);
     } catch (error) {
         console.error('Error updating patient record:', error);
@@ -73,14 +73,14 @@ router.put('/patientRecord', async (req, res) => {
  */
 router.post('/patientDescription', async (req, res) => {
     try {
-        const { doctorId, patientId, description } = req.body;
+        const { userId, userRole, patientId, description } = req.body;
 
-        if (!doctorId || !patientId || !description) {
+        if (!userId || !patientId || !description) {
             return res.status(400).json({ error: 'doctorId, patientId, and description are required' });
         }
 
-        const args = { doctorId, patientId, description };
-        const result = await invokeTransaction('uploadPatientDescription', args, doctorId,'doctor');
+        const args = { userId, patientId, description };
+        const result = await invokeTransaction('uploadPatientDescription', args, userId,userRole);
         res.json(result);
     } catch (error) {
         console.error('Error uploading patient description:', error);
@@ -91,11 +91,11 @@ router.post('/patientDescription', async (req, res) => {
 /**
  * Get All Patients Treated by Doctor
  */
-router.get('/patients/:doctorId', async (req, res) => {
+router.get('/patients/:userId', async (req, res) => {
     try {
-        const doctorId = req.params.doctorId;
-        const args = { doctorId };
-        const result = await getQuery('getAllPatientsWithRecordsByDoctor', args, doctorId);
+        const userId = req.params.userId;
+        const args = { doctorId:userId };
+        const result = await getQuery('getAllPatientsWithRecordsByDoctor', args, userId,'Org1');
         console.log('Patients with records:', result);
         res.json(result);
     } catch (error) {

@@ -1,6 +1,6 @@
 // services/insuranceService.js
 import api from "./api";
-
+import { userId, userRole } from "../context/authUser";
 /**
  * Register Insurance Agent
  * Only insuranceAdmin can do this
@@ -13,6 +13,8 @@ export const registerInsuranceAgent = async ({
 }) => {
   try {
     const res = await api.post("/insurance/register", {
+      userId,
+      userRole,
       agentId,
       insuranceCompany,
       name,
@@ -30,7 +32,6 @@ export const registerInsuranceAgent = async ({
  * Issue Insurance Policy for a Patient
  */
 export const issueInsurance = async ({
-  insuranceId,
   patientId,
   policyNumber,
   coverageAmount,
@@ -38,7 +39,8 @@ export const issueInsurance = async ({
 }) => {
   try {
     const res = await api.post("/insurance/issue", {
-      insuranceId,
+      userId,
+      userRole,
       patientId,
       policyNumber,
       coverageAmount,
@@ -53,9 +55,9 @@ export const issueInsurance = async ({
 /**
  * Get All Claims for an Insurance Company
  */
-export const getClaimsByInsuranceCompany = async (insuranceCompany) => {
+export const getClaimsByInsuranceCompany = async () => {
   try {
-    const res = await api.get(`/insurance/claims/${insuranceCompany}`);
+    const res = await api.get(`/insurance/claims/${userId}`);
     return res.data;
   } catch (error) {
     throw error.response?.data || { error: "Failed to fetch claims" };
@@ -65,10 +67,11 @@ export const getClaimsByInsuranceCompany = async (insuranceCompany) => {
 /**
  * Approve a Claim for a Patient
  */
-export const approveClaim = async ({ insuranceId, claimId, patientId }) => {
+export const approveClaim = async ({ claimId, patientId }) => {
   try {
     const res = await api.post("/insurance/approveClaim", {
-      insuranceId,
+      userId,
+      userRole,
       claimId,
       patientId,
     });
@@ -88,6 +91,8 @@ export const registerInsuranceCompany = async ({
 }) => {
   try {
     const res = await api.post("/insurance/onboard", {
+      userId,
+      userRole,
       companyId,
       name,
       city,

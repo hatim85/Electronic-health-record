@@ -2,14 +2,12 @@ import { useState } from "react";
 import { getMyClaims } from "../../services/patientService";
 
 export default function MyClaims() {
-  const [patientId, setPatientId] = useState("");
-  const [userId, setUserId] = useState("");
   const [claims, setClaims] = useState([]);
   const [error, setError] = useState("");
 
   const fetchClaims = async () => {
     try {
-      const res = await getMyClaims({ patientId, userId });
+      const res = await getMyClaims();
       setClaims(res);
       setError("");
     } catch (err) {
@@ -20,18 +18,6 @@ export default function MyClaims() {
   return (
     <div className="p-6">
       <h2 className="font-bold text-xl">My Insurance Claims</h2>
-      <input
-        placeholder="Patient ID"
-        className="border p-2 mr-2"
-        value={patientId}
-        onChange={(e) => setPatientId(e.target.value)}
-      />
-      <input
-        placeholder="User ID"
-        className="border p-2 mr-2"
-        value={userId}
-        onChange={(e) => setUserId(e.target.value)}
-      />
       <button
         onClick={fetchClaims}
         className="bg-blue-500 text-white px-4 py-2"

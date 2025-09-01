@@ -1,6 +1,6 @@
 // services/researcherService.js
 import api from "./api";
-
+import { userId, userRole } from "../context/authUser";
 /**
  * Register a new researcher
  */
@@ -11,6 +11,8 @@ export const registerResearcher = async ({
 }) => {
   try {
     const res = await api.post("/researcher/register", {
+      userId,
+      userRole,
       researcherId,
       name,
       institution,
@@ -24,9 +26,9 @@ export const registerResearcher = async ({
 /**
  * Fetch all prescriptions (accessible to researchers)
  */
-export const getAllPrescriptions = async (researcherId) => {
+export const getAllPrescriptions = async () => {
   try {
-    const res = await api.get(`/researcher/prescriptions/${researcherId}`);
+    const res = await api.get(`/researcher/prescriptions/${userId}`);
     return res.data;
   } catch (error) {
     throw error.response?.data || { error: "Failed to fetch prescriptions" };
@@ -36,9 +38,9 @@ export const getAllPrescriptions = async (researcherId) => {
 /**
  * Fetch all lab reports (accessible to researchers)
  */
-export const getAllLabReports = async (researcherId) => {
+export const getAllLabReports = async () => {
   try {
-    const res = await api.get(`/researcher/labReports/${researcherId}`);
+    const res = await api.get(`/researcher/labReports/${userId}`);
     return res.data;
   } catch (error) {
     throw error.response?.data || { error: "Failed to fetch lab reports" };
@@ -49,13 +51,13 @@ export const getAllLabReports = async (researcherId) => {
  * Store processed research data (analytics results)
  */
 export const processResearchData = async ({
-  researcherId,
   datasetType,
   resultSummary,
 }) => {
   try {
     const res = await api.post("/researcher/processData", {
-      researcherId,
+      userId,
+      userRole,
       datasetType,
       resultSummary,
     });

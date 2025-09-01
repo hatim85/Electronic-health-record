@@ -12,8 +12,8 @@ const FabricCAServices = require('fabric-ca-client');
 const { Wallets } = require('fabric-network');
 
 // ⬇️ Import the necessary functions from your Pinata helpers
-const { storeIdentity, findCidByUserId } = require('../pinataWallet.js'); // Adjust path if needed
-const { pinataClient } = require('../pinataClient.js'); // Adjust path if needed
+const { storeIdentity, findCidByUserId } = require('../utils/pinataWallet.js'); // Adjust path if needed
+const { pinataClient } = require('../utils/pinataClient.js'); // Adjust path if needed
 
 const ADMIN_ID = 'insuranceAdmin';
 
@@ -96,7 +96,7 @@ async function main() {
         };
 
         // --- 3. STORE THE NEW IDENTITY ---
-        await storeIdentity(ADMIN_ID, x509Identity);
+        await storeIdentity(ADMIN_ID, x509Identity,'insuranceAdmin');
         console.log(`\n--- ✅ Successfully created and stored a fresh identity for ${ADMIN_ID} ---`);
 
     } catch (error) {

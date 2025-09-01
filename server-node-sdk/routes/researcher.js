@@ -2,9 +2,9 @@
 'use strict';
 
 const express = require('express');
-const { getQuery } = require('../query');
-const { invokeTransaction } = require('../invoke');
-const { registerUser } = require('../helper');
+const { getQuery } = require('../utils/query');
+const { invokeTransaction } = require('../utils/invoke');
+const { registerUser } = require('../utils/helper');
 
 const router = express.Router();
 
@@ -14,7 +14,7 @@ const router = express.Router();
  */
 router.post('/register', async (req, res) => {
     try {
-        const { researcherId, name, institution } = req.body;
+        const { userId, userRole, researcherId, name, institution } = req.body;
 
         if (!researcherId || !name || !institution) {
             return res.status(400).json({ error: 'researcherId, name, and institution are required' });
@@ -22,7 +22,7 @@ router.post('/register', async (req, res) => {
 
         // Step 1: Register researcher identity in CA (Org2)
         const registerRes = await registerUser(
-            'researchAdmin',    // admin identity (Org2)
+            userId,    // admin identity (Org2)
             researcherId,       // user ID
             'researcher',       // user role
             { name, institution }
@@ -41,16 +41,16 @@ router.post('/register', async (req, res) => {
 /**
  * Get ALL patient prescription data
  */
-router.get('/prescriptions/:researcherId', async (req, res) => {
+router.get('/prescriptions/:userId', async (req, res) => {
     try {
-        const { researcherId } = req.params;
+        const { userId } = req.params;
 
-        if (!researcherId) {
+        if (!userId) {
             return res.status(400).json({ error: 'researcherId is required' });
         }
 
         const args = {};
-        const result = await getQuery('getAllPrescriptions', args, researcherId);
+        const result = await getQuery('getAllPrescriptions', args, userId,'Org1');
         res.json(result);
     } catch (error) {
         console.error('Error fetching prescriptions:', error);
@@ -61,16 +61,16 @@ router.get('/prescriptions/:researcherId', async (req, res) => {
 /**
  * Get ALL patient lab reports
  */
-router.get('/labReports/:researcherId', async (req, res) => {
+router.get('/labReports/:userId', async (req, res) => {
     try {
-        const { researcherId } = req.params;
+        const { userId } = req.params;
 
-        if (!researcherId) {
+        if (!userId) {
             return res.status(400).json({ error: 'researcherId is required' });
         }
 
         const args = {};
-        const result = await getQuery('getAllLabReports', args, researcherId);
+        const result = await getQuery('getAllLabReports', args, userId,'Org2');
         res.json(result);
     } catch (error) {
         console.error('Error fetching lab reports:', error);
@@ -83,14 +83,14 @@ router.get('/labReports/:researcherId', async (req, res) => {
  */
 router.post('/processData', async (req, res) => {
     try {
-        const { researcherId, datasetType, resultSummary } = req.body;
+        const { userId,userRole, datasetType, resultSummary } = req.body;
 
-        if (!researcherId || !datasetType || !resultSummary) {
+        if (!userId || !datasetType || !resultSummary) {
             return res.status(400).json({ error: 'researcherId, datasetType, and resultSummary are required' });
         }
 
-        const args = { researcherId, datasetType, resultSummary };
-        const result = await invokeTransaction('storeResearchResult', args, researcherId,'researcher');
+        const args = { datasetType, resultSummary };
+        const result = await invokeTransaction('storeResearchResult', args, userId,userRole);
         res.json(result);
     } catch (error) {
         console.error('Error storing research result:', error);

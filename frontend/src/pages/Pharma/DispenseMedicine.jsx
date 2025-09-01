@@ -3,7 +3,6 @@ import { dispenseMedicine } from "../../services/pharmaService";
 
 export default function DispenseMedicine() {
   const [form, setForm] = useState({
-    pharmacyId: "",
     patientId: "",
     recordId: "",
     medicineName: "",
@@ -29,13 +28,6 @@ export default function DispenseMedicine() {
     <div className="p-6">
       <h1 className="text-xl font-bold mb-4">Dispense Medicine</h1>
       <form onSubmit={handleSubmit} className="grid gap-4 max-w-md">
-         <input
-          name="pharmacyId"
-          placeholder="Pharmacy ID"
-          value={form.pharmacyId}
-          onChange={handleChange}
-          className="border p-2 rounded"
-        />
         <input
           name="patientId"
           placeholder="Patient ID"

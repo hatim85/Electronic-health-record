@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { registerHospital } from "../../services/hospitalService";
+import { useAuth } from "../../context/useAuth";
 
 const RegisterHospital = () => {
   const [form, setForm] = useState({

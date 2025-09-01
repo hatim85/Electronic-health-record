@@ -3,7 +3,6 @@ import { issueInsurance } from "../../services/insuranceService";
 
 const IssueInsurance = () => {
   const [form, setForm] = useState({
-    insuranceId: "",
     patientId: "",
     policyNumber: "",
     coverageAmount: "",
@@ -27,7 +26,6 @@ const IssueInsurance = () => {
     <div className="p-6 max-w-lg mx-auto">
       <h2 className="text-2xl font-bold mb-4">Issue Insurance Policy</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input name="insuranceId" placeholder="Insurance ID" value={form.insuranceId} onChange={handleChange} className="w-full border p-2" />
         <input name="patientId" placeholder="Patient ID" value={form.patientId} onChange={handleChange} className="w-full border p-2" />
         <input name="policyNumber" placeholder="Policy Number" value={form.policyNumber} onChange={handleChange} className="w-full border p-2" />
         <input name="coverageAmount" placeholder="Coverage Amount" value={form.coverageAmount} onChange={handleChange} className="w-full border p-2" />

@@ -3,7 +3,6 @@ import { uploadLabReport } from "../../services/diagnosticsService";
 
 export default function UploadLabReport() {
   const [formData, setFormData] = useState({
-    labId: "",
     patientId: "",
     reportType: "",
     reportData: "",
@@ -33,15 +32,6 @@ export default function UploadLabReport() {
       {message && <p className="mb-3 text-blue-600">{message}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-          type="text"
-          name="labId"
-          placeholder="Lab ID"
-          value={formData.labId}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border rounded-lg"
-          required
-        />
         <input
           type="text"
           name="patientId"

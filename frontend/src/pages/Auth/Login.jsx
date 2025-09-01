@@ -45,7 +45,7 @@ export default function Login() {
             className="w-full px-3 py-2 border rounded-lg"
           >
             <option value="">Select Role</option>
-            <option value="hospitalAdmin">HospitalAdmin</option>
+            <option value="superAdmin">superAdmin</option>
             <option value="insuranceAdmin">InsuranceAdmin</option>
             <option value="researchAdmin">ResearchAdmin</option>
             <option value="hospital">Hospital</option>
@@ -53,6 +53,7 @@ export default function Login() {
             <option value="patient">Patient</option>
             <option value="doctor">Doctor</option>
             <option value="insuranceAgent">Insurance Agent</option>
+            <option value="insuranceCompany">Insurance Company</option>
             <option value="pharmacy">Pharmacy</option>
             <option value="researcher">Researcher</option>
           </select>

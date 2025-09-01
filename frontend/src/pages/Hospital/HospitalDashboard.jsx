@@ -3,28 +3,25 @@ import {
   getDoctorsByHospital,
   getPatientsByHospital,
 } from "../../services/hospitalService";
-import { useAuth } from "../../context/useAuth";
 
 const HospitalDashboard = () => {
-  const { user } = useAuth(); // hospitalId comes from auth context
   const [doctors, setDoctors] = useState([]);
   const [patients, setPatients] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const doctorRes = await getDoctorsByHospital(user?.id);
+        const doctorRes = await getDoctorsByHospital();
         setDoctors(doctorRes);
 
-        const patientRes = await getPatientsByHospital(user?.id);
+        const patientRes = await getPatientsByHospital();
         setPatients(patientRes);
       } catch (err) {
         console.error("Error loading dashboard:", err);
       }
     };
 
-    if (user?.id) fetchData();
-  }, [user]);
+  }, []);
 
   return (
     <div className="p-6">

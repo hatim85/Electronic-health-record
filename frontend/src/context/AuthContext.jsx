@@ -6,7 +6,7 @@ const AuthContext = createContext();
 
 // Provider
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // { id, role, token }
+  const [user, setUser] = useState(null); // { userId, userRole, token }
   const [loading, setLoading] = useState(true);
 
   // Load user from localStorage on refresh
@@ -19,15 +19,17 @@ export const AuthProvider = ({ children }) => {
   // Login function
   const login = async (credentials) => {
     try {
-      // Example API call -> adjust with your backend
       const res = await axios.post(
         "http://localhost:3000/api/v1/auth/login",
         credentials
       );
-      const loggedInUser = res.data; // { id, role, token }
+      console.log("credentials: ", credentials);
+      // Map response into frontend format
+      const loggedInUser = res.data;
 
       setUser(loggedInUser);
       localStorage.setItem("ehr-user", JSON.stringify(loggedInUser));
+      console.log("Login successful:", loggedInUser);
       return { success: true, user: loggedInUser };
     } catch (err) {
       console.error("Login failed", err);
@@ -37,6 +39,7 @@ export const AuthProvider = ({ children }) => {
       };
     }
   };
+
 
   // Logout function
   const logout = () => {
@@ -52,8 +55,38 @@ export const AuthProvider = ({ children }) => {
     return {};
   };
 
+  // Check if user has specific role
+  const hasRole = (role) => {
+    return user?.userRole === role;
+  };
+
+  // Check if user has any of the specified roles
+  const hasAnyRole = (roles) => {
+    return roles.includes(user?.userRole);
+  };
+
+  // Get the logged-in user's ID (for admin operations)
+  const getLoggedInUserId = () => {
+    return user?.userId;
+  };
+
+  // Get the logged-in user's role
+  const getLoggedInUserRole = () => {
+    return user?.userRole;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, authHeader, loading }}>
+    <AuthContext.Provider value={{
+      user,
+      login,
+      logout,
+      authHeader,
+      loading,
+      hasRole,
+      hasAnyRole,
+      getLoggedInUserId,
+      getLoggedInUserRole
+    }}>
       {!loading && children}
     </AuthContext.Provider>
   );
