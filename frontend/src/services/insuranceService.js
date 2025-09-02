@@ -1,9 +1,6 @@
 // services/insuranceService.js
 import api from "./api";
 import { getUserId, getUserRole } from "../context/authUser";
-
-const userId=getUserId();
-const userRole=getUserRole();
 /**
  * Register Insurance Agent
  * Only insuranceAdmin can do this
@@ -17,8 +14,8 @@ export const registerInsuranceAgent = async ({
   console.log("userId: ",userId," userRole: ",userRole," in service");
   try {
     const res = await api.post("/insurance/register", {
-      userId,
-      userRole,
+      userId: getUserId(),
+      userRole: getUserRole(),
       agentId,
       insuranceCompany,
       name,
@@ -43,8 +40,8 @@ export const issueInsurance = async ({
 }) => {
   try {
     const res = await api.post("/insurance/issue", {
-      userId,
-      userRole,
+      userId: getUserId(),
+      userRole: getUserRole(),
       patientId,
       policyNumber,
       coverageAmount,
@@ -61,7 +58,7 @@ export const issueInsurance = async ({
  */
 export const getClaimsByInsuranceCompany = async () => {
   try {
-    const res = await api.get(`/insurance/claims/${userId}`);
+    const res = await api.get(`/insurance/claims/${getUserId()}`);
     return res.data;
   } catch (error) {
     throw error.response?.data || { error: "Failed to fetch claims" };
@@ -74,8 +71,8 @@ export const getClaimsByInsuranceCompany = async () => {
 export const approveClaim = async ({ claimId, patientId }) => {
   try {
     const res = await api.post("/insurance/approveClaim", {
-      userId,
-      userRole,
+      userId: getUserId(),
+      userRole: getUserRole(),
       claimId,
       patientId,
     });
@@ -96,8 +93,8 @@ export const registerInsuranceCompany = async ({
   console.log("userId: ",userId," userRole: ",userRole," in service");
   try {
     const res = await api.post("/insurance/onboard", {
-      userId,
-      userRole,
+      userId: getUserId(),
+      userRole: getUserRole(),
       companyId,
       name,
       city,

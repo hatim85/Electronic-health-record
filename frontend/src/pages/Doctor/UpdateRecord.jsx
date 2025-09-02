@@ -28,8 +28,10 @@ export default function UpdateRecord() {
     const newErrors = {};
     if (!formData.recordId) newErrors.recordId = "Record ID is required";
     if (!formData.patientId) newErrors.patientId = "Patient ID is required";
-    if (!formData.diagnosis) newErrors.diagnosis = "Diagnosis is required";
-    if (!formData.prescription) newErrors.prescription = "Prescription is required";
+    if (!formData.diagnosis && !formData.prescription) {
+      newErrors.diagnosis = "At least one of diagnosis or prescription is required";
+      newErrors.prescription = "At least one of diagnosis or prescription is required";
+    }
     return newErrors;
   };
 
@@ -89,16 +91,14 @@ export default function UpdateRecord() {
                 name={field.name}
                 value={formData[field.name]}
                 onChange={handleChange}
-                className={`peer w-full px-4 py-3 border ${
-                  errors[field.name] ? "border-red-500" : "border-gray-300"
-                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-700 placeholder-transparent`}
+                className={`peer w-full px-4 py-3 border ${errors[field.name] ? "border-red-500" : "border-gray-300"
+                  } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-700 placeholder-transparent`}
                 placeholder={field.label}
                 required
               />
               <label
-                className={`absolute left-4 top-3 text-gray-500 text-sm transition-all transform peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-[-8px] peer-focus:text-sm peer-focus:text-blue-600 bg-white px-1 ${
-                  formData[field.name] ? "top-[-8px] text-sm text-blue-600" : ""
-                }`}
+                className={`absolute left-4 top-3 text-gray-500 text-sm transition-all transform peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-[-8px] peer-focus:text-sm peer-focus:text-blue-600 bg-white px-1 ${formData[field.name] ? "top-[-8px] text-sm text-blue-600" : ""
+                  }`}
               >
                 {field.label}
               </label>
@@ -117,17 +117,14 @@ export default function UpdateRecord() {
                 name={field.name}
                 value={formData[field.name]}
                 onChange={handleChange}
-                className={`peer w-full px-4 py-3 border ${
-                  errors[field.name] ? "border-red-500" : "border-gray-300"
-                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-700 placeholder-transparent`}
+                className={`peer w-full px-4 py-3 border ${errors[field.name] ? "border-red-500" : "border-gray-300"
+                  } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-700 placeholder-transparent`}
                 placeholder={field.label}
                 rows="4"
-                required
               />
               <label
-                className={`absolute left-4 top-3 text-gray-500 text-sm transition-all transform peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-[-8px] peer-focus:text-sm peer-focus:text-blue-600 bg-white px-1 ${
-                  formData[field.name] ? "top-[-8px] text-sm text-blue-600" : ""
-                }`}
+                className={`absolute left-4 top-3 text-gray-500 text-sm transition-all transform peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-[-8px] peer-focus:text-sm peer-focus:text-blue-600 bg-white px-1 ${formData[field.name] ? "top-[-8px] text-sm text-blue-600" : ""
+                  }`}
               >
                 {field.label}
               </label>
@@ -174,9 +171,8 @@ export default function UpdateRecord() {
         {/* Message */}
         {message && (
           <p
-            className={`mt-4 text-center ${
-              message.includes("✅") ? "text-green-600" : "text-red-500"
-            }`}
+            className={`mt-4 text-center ${message.includes("✅") ? "text-green-600" : "text-red-500"
+              }`}
           >
             {message}
           </p>

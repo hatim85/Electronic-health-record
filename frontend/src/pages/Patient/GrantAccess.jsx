@@ -24,9 +24,10 @@ export default function GrantAccess() {
     if (!form.entityId) newErrors.entityId = "Entity ID is required";
     if (!form.entityRole) {
       newErrors.entityRole = "Entity Role is required";
-    } else if (!["doctor", "hospital", "insurance"].includes(form.entityRole.toLowerCase())) {
-      newErrors.entityRole = "Role must be 'doctor', 'hospital', or 'insurance'";
     }
+    //  else if (!["doctor", "hospital", "insurance","insuranceAdmin", "insuranceAgent","pharmacy","diagnostics","researcher","researchAdmin","superAdmin"].includes(form.entityRole.toLowerCase())) {
+    //   newErrors.entityRole = "Enter a valid role (doctor, hospital,insuranceAgent, insurance, insuranceAdmin, pharmacy, diagnostics, researcher, researchAdmin, superAdmin)";
+    // }
     return newErrors;
   };
 
@@ -117,7 +118,7 @@ export default function GrantAccess() {
                 form.entityRole ? "top-[-8px] text-sm text-blue-600" : ""
               }`}
             >
-              Entity Role (doctor, hospital, insurance)
+              Entity Role
             </label>
             {errors.entityRole && (
               <p className="text-red-500 text-xs mt-1">{errors.entityRole}</p>

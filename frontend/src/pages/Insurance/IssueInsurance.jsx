@@ -50,7 +50,7 @@ export default function IssueInsurance() {
     setLoading(true);
     try {
       const res = await issueInsurance(form);
-      setMessage(`✅ Insurance issued: ${res.message || "Success"}`);
+      setMessage(`✅ ${res.message || "Success"}`);
       setForm({ patientId: "", policyNumber: "", coverageAmount: "", insuranceCompany: "" });
       setErrors({});
     } catch (err) {

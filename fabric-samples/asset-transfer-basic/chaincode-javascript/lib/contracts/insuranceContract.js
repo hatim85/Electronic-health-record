@@ -33,6 +33,10 @@ async function issueInsurance(ctx, args) {
     const insuranceKey = ctx.stub.createCompositeKey('insurance', [
         args.policyNumber,
     ]);
+
+    const txTimestamp = ctx.stub.getTxTimestamp();
+    const issuedAt = new Date(txTimestamp.seconds.low * 1000).toISOString();
+
     const insuranceObj = {
         docType: 'insurance',
         policyNumber: args.policyNumber,
@@ -40,7 +44,7 @@ async function issueInsurance(ctx, args) {
         insuranceCompany: args.insuranceCompany,
         patientId: args.patientId,
         coverageAmount: args.coverageAmount,
-        issuedAt: new Date().toISOString(),
+        issuedAt,
         claims: [],
     };
 

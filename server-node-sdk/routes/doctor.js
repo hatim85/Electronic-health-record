@@ -59,7 +59,7 @@ router.put('/patientRecord', async (req, res) => {
             return res.status(400).json({ error: 'userId and recordId are required' });
         }
 
-        const args = { doctorId, recordId, diagnosis: diagnosis,patientId, prescription: prescription || '' };
+        const args = { doctorId:userId, recordId, diagnosis: diagnosis,patientId, prescription: prescription || '' };
         const result = await invokeTransaction('updatePatientRecord', args, userId, userRole);
         res.json(result);
     } catch (error) {

@@ -325,7 +325,7 @@ async function getAllClaimsByInsurance(ctx, args) {
     const query = {
         selector: {
             docType: "claim",
-            insuranceCompany: args.insuranceCompany,
+            insuranceId: args.insuranceId,
         },
     };
 

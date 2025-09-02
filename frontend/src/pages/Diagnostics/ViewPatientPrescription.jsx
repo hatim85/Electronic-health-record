@@ -160,7 +160,7 @@ export default function ViewPatientPrescription() {
                 <p className="text-gray-700">
                   <strong>Prescription:</strong> {report.prescription}
                 </p>
-                <p className="text-gray-700">
+                <p className="text-gray-700 wrap-anywhere">
                   <strong>Record ID:</strong> {report.recordId}
                 </p>
                 <p className="text-sm text-gray-500">

@@ -36,12 +36,12 @@ export default function InsuranceDashboard() {
         {/* Header with Back button and Profile icon */}
         <div className="flex justify-between items-center mb-8">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/')}
             className="flex items-center text-gray-600 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
             aria-label="Go back to previous page"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
-            <span className="text-sm font-medium">Back</span>
+            <span className="text-sm font-medium">Back to Home</span>
           </button>
           <button
             onClick={() => navigate("/profile")}

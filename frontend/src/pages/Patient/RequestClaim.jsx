@@ -44,7 +44,7 @@ export default function RequestClaim() {
     setLoading(true);
     try {
       const res = await requestClaim(form);
-      setMessage(`✅ Claim requested: ${res.claimId || "Success"}`);
+      setMessage(`✅ Claim requested`);
       setForm({ policyNumber: "", amount: "", reason: "" });
       setErrors({});
     } catch (err) {

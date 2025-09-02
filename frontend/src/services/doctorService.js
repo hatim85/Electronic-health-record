@@ -1,15 +1,12 @@
 // services/doctorService.js
 import api from "./api";
 import { getUserId, getUserRole } from "../context/authUser";
-
-const userId=getUserId();
-const userRole=getUserRole();
 /**
  * Doctor Login
  */
 export const doctorLogin = async (doctorId) => {
   try {
-    const res = await api.post("/login", { userId, userRole});
+    const res = await api.post("/login", { userId: getUserId(), userRole: getUserRole()});
     return res.data;
   } catch (error) {
     throw error.response?.data || { error: "Doctor login failed" };
@@ -22,8 +19,8 @@ export const doctorLogin = async (doctorId) => {
 export const createPatientRecord = async ({ patientId, diagnosis, prescription }) => {
   try {
     const res = await api.post("/doctor/patientRecord", {
-      userId,
-      userRole,
+      userId: getUserId(),
+      userRole: getUserRole(),
       patientId,
       diagnosis,
       prescription,
@@ -40,8 +37,8 @@ export const createPatientRecord = async ({ patientId, diagnosis, prescription }
 export const updatePatientRecord = async ({ recordId, patientId, diagnosis, prescription }) => {
   try {
     const res = await api.put("/doctor/patientRecord", {
-      userId,
-      userRole,
+      userId: getUserId(),
+      userRole: getUserRole(),
       recordId,
       patientId,
       diagnosis,
@@ -59,8 +56,8 @@ export const updatePatientRecord = async ({ recordId, patientId, diagnosis, pres
 export const uploadPatientDescription = async ({ patientId, description }) => {
   try {
     const res = await api.post("/doctor/patientDescription", {
-      userId,
-      userRole,
+      userId: getUserId(),
+      userRole: getUserRole(),
       patientId,
       description,
     });
@@ -75,7 +72,7 @@ export const uploadPatientDescription = async ({ patientId, description }) => {
  */
 export const getPatientsByDoctor = async () => {
   try {
-    const res = await api.get(`/doctor/patients/${userId}`);
+    const res = await api.get(`/doctor/patients/${getUserId()}`);
     console.log('Fetched patients:', res.data);
     return res.data;
   } catch (error) {

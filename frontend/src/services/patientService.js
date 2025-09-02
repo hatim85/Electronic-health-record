@@ -1,14 +1,11 @@
 import api from "./api";
 import { getUserId, getUserRole } from "../context/authUser";
-
-const userId=getUserId();
-const userRole=getUserRole();
 // 🔹 Grant access (to doctor/hospital/insurance)
 export const grantAccess = async ({ entityId, entityRole }) => {
   try {
     const res = await api.post("/patient/grantAccess", {
-      userId,
-      userRole,
+      userId: getUserId(),
+      userRole: getUserRole(),
       entityId,
       entityRole,
     });
@@ -21,7 +18,7 @@ export const grantAccess = async ({ entityId, entityRole }) => {
 // 🔹 View prescriptions
 export const getMyPrescriptions = async () => {
   try {
-    const res = await api.get(`/patient/prescriptions/${userId}`);
+    const res = await api.get(`/patient/prescriptions/${getUserId()}`);
     return res.data;
   } catch (err) {
     throw err.response?.data || { error: "Failed to fetch prescriptions" };
@@ -31,7 +28,7 @@ export const getMyPrescriptions = async () => {
 // 🔹 View lab reports
 export const getMyReports = async () => {
   try {
-    const res = await api.get(`/patient/reports/${userId}`);
+    const res = await api.get(`/patient/reports/${getUserId()}`);
     return res.data;
   } catch (err) {
     throw err.response?.data || { error: "Failed to fetch reports" };
@@ -41,7 +38,7 @@ export const getMyReports = async () => {
 // 🔹 View treatment history
 export const getMyHistory = async () => {
   try {
-    const res = await api.get(`/patient/history/${userId}`);
+    const res = await api.get(`/patient/history/${getUserId()}`);
     return res.data;
   } catch (err) {
     throw err.response?.data || { error: "Failed to fetch history" };
@@ -52,8 +49,8 @@ export const getMyHistory = async () => {
 export const requestClaim = async ({ policyNumber, amount, reason }) => {
   try {
     const res = await api.post("/patient/requestClaim", {
-      userId,
-      userRole,
+      userId: getUserId(),
+      userRole: getUserRole(),
       policyNumber,
       amount,
       reason,
@@ -67,7 +64,7 @@ export const requestClaim = async ({ policyNumber, amount, reason }) => {
 // 🔹 View reward points
 export const getMyRewards = async () => {
   try {
-    const res = await api.get(`/patient/rewards/${userId}`);
+    const res = await api.get(`/patient/rewards/${getUserId()}`);
     console.log("res:", res);
     return res.data;
   } catch (err) {
@@ -78,7 +75,7 @@ export const getMyRewards = async () => {
 // 🔹 View my claims
 export const getMyClaims = async () => {
   try {
-    const res = await api.get(`/patient/claims/${userId}`);
+    const res = await api.get(`/patient/claims/${getUserId()}`);
     return res.data;
   } catch (err) {
     throw err.response?.data || { error: "Failed to fetch claims" };

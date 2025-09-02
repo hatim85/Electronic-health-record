@@ -55,7 +55,7 @@ router.post('/dispense', async (req, res) => {
         const { userId, userRole, patientId, recordId, medicineName, quantity } = req.body;
 
         // Validate inputs
-        if (!pharmacyId || !patientId || !recordId || !medicineName || !quantity) {
+        if (!patientId || !recordId || !medicineName || !quantity) {
             return res.status(400).json({
                 error: 'pharmacyId, patientId, recordId, medicineName, and quantity are required'
             });

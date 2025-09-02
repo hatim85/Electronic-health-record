@@ -1,9 +1,6 @@
 // services/researcherService.js
 import { getUserId, getUserRole } from "../context/authUser";
 import api from "./api";
-
-const userId=getUserId();
-const userRole=getUserRole();
 /**
  * Register a new researcher
  */
@@ -14,8 +11,8 @@ export const registerResearcher = async ({
 }) => {
   try {
     const res = await api.post("/researcher/register", {
-      userId,
-      userRole,
+      userId: getUserId(),
+      userRole: getUserRole(),
       researcherId,
       name,
       institution,
@@ -31,7 +28,7 @@ export const registerResearcher = async ({
  */
 export const getAllPrescriptions = async () => {
   try {
-    const res = await api.get(`/researcher/prescriptions/${userId}`);
+    const res = await api.get(`/researcher/prescriptions/${getUserId()}`);
     return res.data;
   } catch (error) {
     throw error.response?.data || { error: "Failed to fetch prescriptions" };
@@ -43,7 +40,7 @@ export const getAllPrescriptions = async () => {
  */
 export const getAllLabReports = async () => {
   try {
-    const res = await api.get(`/researcher/labReports/${userId}`);
+    const res = await api.get(`/researcher/labReports/${getUserId()}`);
     return res.data;
   } catch (error) {
     throw error.response?.data || { error: "Failed to fetch lab reports" };
@@ -59,8 +56,8 @@ export const processResearchData = async ({
 }) => {
   try {
     const res = await api.post("/researcher/processData", {
-      userId,
-      userRole,
+      userId: getUserId(),
+      userRole: getUserRole(),
       datasetType,
       resultSummary,
     });

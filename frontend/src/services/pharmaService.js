@@ -1,15 +1,12 @@
 // services/pharmaService.js
 import api from "./api";
 import { getUserId, getUserRole } from "../context/authUser";
-
-const userId=getUserId();
-const userRole=getUserRole();
 /**
  * Get patient prescription from pharmacy by patientId
  */
 export const getPatientPrescription = async (patientId) => {
   try {
-    const res = await api.get(`/pharmacy/prescription/${userId}/${patientId}`);
+    const res = await api.get(`/pharmacy/prescription/${getUserId()}/${patientId}`);
     console.log("res:", res);
     return res.data;
   } catch (error) {
@@ -23,8 +20,8 @@ export const getPatientPrescription = async (patientId) => {
 export const updateMedicineStock = async ({ medicineName, newStock }) => {
   try {
     const res = await api.post("/pharmacy/updateStock", {
-      userId,
-      userRole,
+      userId: getUserId(),
+      userRole: getUserRole(),
       medicineName,
       newStock,
     });
@@ -40,8 +37,8 @@ export const updateMedicineStock = async ({ medicineName, newStock }) => {
 export const dispenseMedicine = async ({ patientId, recordId, medicineName, quantity }) => {
   try {
     const res = await api.post("/pharmacy/dispense", {
-      userId,
-      userRole,
+      userId: getUserId(),
+      userRole: getUserRole(),
       patientId,
       recordId,
       medicineName,
