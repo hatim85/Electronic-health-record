@@ -1,6 +1,9 @@
 // services/insuranceService.js
 import api from "./api";
-import { userId, userRole } from "../context/authUser";
+import { getUserId, getUserRole } from "../context/authUser";
+
+const userId=getUserId();
+const userRole=getUserRole();
 /**
  * Register Insurance Agent
  * Only insuranceAdmin can do this
@@ -11,6 +14,7 @@ export const registerInsuranceAgent = async ({
   name,
   city,
 }) => {
+  console.log("userId: ",userId," userRole: ",userRole," in service");
   try {
     const res = await api.post("/insurance/register", {
       userId,
@@ -89,6 +93,7 @@ export const registerInsuranceCompany = async ({
   name,
   city,
 }) => {
+  console.log("userId: ",userId," userRole: ",userRole," in service");
   try {
     const res = await api.post("/insurance/onboard", {
       userId,

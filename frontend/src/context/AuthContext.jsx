@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }) => {
 
   // Get the logged-in user's ID (for admin operations)
   const getLoggedInUserId = () => {
-    return user?.userId;
+    return user?.userID;
   };
 
   // Get the logged-in user's role

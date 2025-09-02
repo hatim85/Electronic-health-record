@@ -1,6 +1,9 @@
 // services/researcherService.js
+import { getUserId, getUserRole } from "../context/authUser";
 import api from "./api";
-import { userId, userRole } from "../context/authUser";
+
+const userId=getUserId();
+const userRole=getUserRole();
 /**
  * Register a new researcher
  */

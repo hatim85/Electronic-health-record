@@ -1,5 +1,8 @@
 import api from "./api";
-import { userId, userRole } from "../context/authUser";
+import { getUserId, getUserRole } from "../context/authUser";
+
+const userId=getUserId();
+const userRole=getUserRole();
 // 🔹 Grant access (to doctor/hospital/insurance)
 export const grantAccess = async ({ entityId, entityRole }) => {
   try {

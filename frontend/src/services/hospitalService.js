@@ -1,5 +1,8 @@
 import api from "./api";
-import { userId, userRole } from "../context/authUser";
+import { getUserId, getUserRole } from "../context/authUser";
+
+const userId=getUserId();
+const userRole=getUserRole();
 // ============================
 // HOSPITAL SERVICE (matches backend routes)
 // ============================
@@ -119,6 +122,7 @@ export const deleteDoctor = async ({ doctorId, hospitalId }) => {
 // 🔹 Get all doctors in a hospital
 export const getDoctorsByHospital = async () => {
   try {
+    console.log("userId hospital for doctors: ",userId)
     const res = await api.get(`/hospital/doctors/${userId}`);
     console.log("res: ", res);
     return res.data;

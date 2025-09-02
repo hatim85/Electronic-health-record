@@ -221,7 +221,7 @@ router.get('/patients/:userId', async (req, res) => {
 router.post('/diagnostic', async (req, res) => {
     try {
         const { hospitalId,diagnosticsId, name, city, userId, userRole } = req.body;
-
+        console.log("userId: ",userId," userRole: ",userRole, " hospitalId: ",hospitalId," diagnosticsId: ",diagnosticsId)
         if ( !diagnosticsId || !name) {
             return res.status(400).json({ error: 'hospitalId, diagnosticsId, and name are required' });
         }

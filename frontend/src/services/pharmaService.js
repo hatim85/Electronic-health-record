@@ -1,6 +1,9 @@
 // services/pharmaService.js
 import api from "./api";
-import { userId, userRole } from "../context/authUser";
+import { getUserId, getUserRole } from "../context/authUser";
+
+const userId=getUserId();
+const userRole=getUserRole();
 /**
  * Get patient prescription from pharmacy by patientId
  */
