@@ -90,10 +90,6 @@ async function approveClaim(ctx, args) {
     args = typeof args === 'string' ? JSON.parse(args) : args;
     const { role } = getCallerAttributes(ctx);
 
-    // Only admin can approve claims
-    if (role !== 'insuranceAdmin') {
-        throw new Error('Only insurance admin can approve claims');
-    }
 
     if (!args.claimId) throw new Error('claimId required');
 

@@ -16,6 +16,7 @@ export default function MyReports() {
         setLoading(true);
         setError("");
         const res = await getMyReports();
+        console.log("reports:", res);
         setReports(Array.isArray(res) ? res : []);
       } catch (err) {
         setError(`❌ ${err.error || "Failed to load reports"}`);
@@ -82,21 +83,22 @@ export default function MyReports() {
                 key={i}
                 className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2"
               >
+                {console.log("report item:", r)}
                 <p className="text-gray-700">
-                  <strong>Report ID:</strong> {r.reportId || "N/A"}
+                  <strong>Report ID:</strong> {r.recordId || "N/A"}
                 </p>
                 <p className="text-gray-700">
-                  <strong>Test Name:</strong> {r.testName || "N/A"}
+                  <strong>Test Name:</strong> {r.labReport.reportType || "N/A"}
                 </p>
                 <p className="text-gray-700">
-                  <strong>Result:</strong> {r.result || "N/A"}
+                  <strong>Result:</strong> {r.labReport.reportData || "N/A"}
                 </p>
                 <p className="text-sm text-gray-500">
                   <strong>Date:</strong>{" "}
-                  {r.createdAt ? new Date(r.createdAt).toLocaleDateString() : "N/A"}
+                  {r.labReport.createdAt ? new Date(r.labReport.createdAt).toLocaleDateString() : "N/A"}
                 </p>
                 <p className="text-gray-700">
-                  <strong>Lab:</strong> {r.labName || "N/A"}
+                  <strong>Lab:</strong> {r.labReport.labId || "N/A"}
                 </p>
               </div>
             ))}

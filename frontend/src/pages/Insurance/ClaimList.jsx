@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { getClaimsByInsuranceCompany } from "../../services/insuranceService";
+import { getClaimsByInsuranceCompany, approveClaim } from "../../services/insuranceService";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
-import { ArrowLeft, List, User, X } from "lucide-react";
+import { ArrowLeft, ClipboardCheck, List, User, X } from "lucide-react";
 
 export default function ClaimList() {
   const navigate = useNavigate();
@@ -12,8 +12,14 @@ export default function ClaimList() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  console.log("User role:", userRole);
-  console.log(getLoggedInUserRole());
+  const [insuranceCompanyId, setInsuranceCompanyId] = useState("");
+  const [inputError, setInputError] = useState("");
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [selectedClaim, setSelectedClaim] = useState(null);
+  const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
+  const [approveLoading, setApproveLoading] = useState(false);
+  const [approveError, setApproveError] = useState("");
+  const [approveSuccess, setApproveSuccess] = useState("");
 
   // Fetch claims on mount for all roles
   useEffect(() => {
@@ -34,6 +40,36 @@ export default function ClaimList() {
 
   const dismissError = () => setError("");
   const dismissSuccess = () => setSuccess("");
+
+  const openConfirmationModal = (claim) => {
+    setSelectedClaim(claim);
+    setConfirmationModalOpen(true);
+    setApproveError("");
+    setApproveSuccess("");
+  };
+
+  const closeConfirmationModal = () => {
+    setConfirmationModalOpen(false);
+    setSelectedClaim(null);
+  };
+
+  const handleApprove = async () => {
+    if (!selectedClaim.patientId) {
+      setApproveError("Patient ID is required");
+      return;
+    }
+    setApproveLoading(true);
+    try {
+      const res = await approveClaim({ claimId: selectedClaim.claimId, patientId: selectedClaim.patientId });
+      setApproveSuccess(`✅ Claim approved: ${res.message || "Success"}`);
+      setClaims((prevClaims) => prevClaims.map((c) => c.claimId === selectedClaim.claimId ? { ...c, status: "APPROVED" } : c));
+      setTimeout(closeConfirmationModal, 3000); // Close modal after 3 seconds
+    } catch (err) {
+      setApproveError(`❌ ${err.error || "Failed to approve claim"}`);
+    } finally {
+      setApproveLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center p-4 sm:p-6 lg:p-8">
@@ -59,12 +95,12 @@ export default function ClaimList() {
         {/* Header with Back button and Profile icon */}
         <div className="flex justify-between items-center mb-8">
           <button
-            onClick={() => navigate('/')}
-            className="flex items-center text-gray-600 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+            onClick={() => navigate(-1)}
+            className="flex items-center text-gray-600 hover:text-blue-500 focus:outline-none focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
             aria-label="Go back to previous page"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
-            <span className="text-sm font-medium">Back to Home</span>
+            <span className="text-sm font-medium">Back</span>
           </button>
         </div>
 
@@ -166,15 +202,15 @@ export default function ClaimList() {
                     <p className="text-gray-700 text-sm overflow-hidden text-ellipsis whitespace-nowrap max-w-[calc(100%-4rem)]">{c.reason}</p>
                   </div>
                 </div>
-                <div className="mt-4">
+                <div className="flex justify-end space-x-3 mt-4">
                   {c.status === "PENDING" && (
-                    <Link
-                      to={`/insurance/approve-claim`}
-                      className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 font-medium text-sm"
+                    <button
+                      onClick={() => openConfirmationModal(c)}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 font-medium"
                       aria-label={`Approve claim ${c.claimId}`}
                     >
                       Approve
-                    </Link>
+                    </button>
                   )}
                 </div>
               </div>
@@ -184,6 +220,91 @@ export default function ClaimList() {
           <p className="text-gray-500 text-center py-10" role="status">
             No claims found.
           </p>
+        )}
+
+        {/* Confirmation Modal */}
+        {confirmationModalOpen && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 relative">
+              <button
+                onClick={closeConfirmationModal}
+                className="absolute top-4 right-4 text-gray-500 hover:text-red-600 transition"
+                aria-label="Close modal"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              <div className="flex flex-col items-center mb-6">
+                <ClipboardCheck className="w-10 h-10 text-blue-500 mb-4" />
+                <h2 className="text-2xl font-bold text-gray-800">Approve Claim</h2>
+                <p className="text-sm text-gray-500 mt-2 text-center">
+                  Confirm approval of claim {selectedClaim.claimId} for patient {selectedClaim.patientId}
+                </p>
+              </div>
+              {/* <div className="relative mb-6">
+                <input
+                  type="text"
+                  name="patientId"
+                  value={selectedClaim.patientId}
+                  onChange={(e) => setSelectedClaim({ ...selectedClaim, patientId: e.target.value })}
+                  className={`peer w-full px-4 py-3 border ${
+                    approveError ? "border-red-500" : "border-gray-300"
+                  } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-700 placeholder-transparent`}
+                  placeholder="Patient ID"
+                  aria-describedby="patientIdError"
+                />
+                <label
+                  className={`absolute left-4 top-3 text-gray-500 text-sm transition-all transform peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-[-8px] peer-focus:text-sm peer-focus:text-blue-500 bg-white px-1 ${
+                    selectedClaim.patientId ? "top-[-8px] text-sm text-blue-500" : ""
+                  }`}
+                >
+                  Patient ID
+                </label>
+              </div> */}
+              {approveError && (
+                <p className="text-red-500 text-xs mb-4">{approveError}</p>
+              )}
+              {approveSuccess && (
+                <p className="text-green-600 text-xs mb-4">{approveSuccess}</p>
+              )}
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={closeConfirmationModal}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200 font-medium"
+                  aria-label="Cancel approval"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleApprove}
+                  disabled={approveLoading}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 font-medium flex items-center"
+                  aria-label="Confirm approval"
+                >
+                  {approveLoading && (
+                    <svg
+                      className="animate-spin h-5 w-5 mr-2 text-white"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                      />
+                    </svg>
+                  )}
+                  {approveLoading ? "Approving..." : "OK"}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

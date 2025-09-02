@@ -16,6 +16,7 @@ export default function MyHistory() {
         setLoading(true);
         setError("");
         const res = await getMyHistory();
+        console.log("API Response:", res);
         setHistory(Array.isArray(res) ? res : []);
       } catch (err) {
         setError(`❌ ${err.error || "Failed to load history"}`);
@@ -82,22 +83,103 @@ export default function MyHistory() {
                 key={i}
                 className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2"
               >
-                <p className="text-gray-700">
-                  <strong>Record ID:</strong> {h.recordId || "N/A"}
-                </p>
-                <p className="text-gray-700">
-                  <strong>Diagnosis:</strong> {h.diagnosis || "N/A"}
-                </p>
-                <p className="text-gray-700">
-                  <strong>Treatment:</strong> {h.treatment || "N/A"}
-                </p>
-                <p className="text-sm text-gray-500">
-                  <strong>Date:</strong>{" "}
-                  {h.createdAt ? new Date(h.createdAt).toLocaleString() : "N/A"}
-                </p>
-                <p className="text-gray-700">
-                  <strong>Provider:</strong> {h.provider || "N/A"}
-                </p>
+                {/* Record Info */}
+                {h.recordId && (
+                  <p className="text-gray-700">
+                    <strong>Record ID:</strong> {h.recordId}
+                  </p>
+                )}
+                {h.createdAt && (
+                  <p className="text-sm text-gray-500">
+                    <strong>Date:</strong>{" "}
+                    {new Date(h.createdAt).toLocaleString()}
+                  </p>
+                )}
+                {h.updatedAt && (
+                  <p className="text-sm text-gray-500">
+                    <strong>Last Updated:</strong>{" "}
+                    {new Date(h.updatedAt).toLocaleString()}
+                  </p>
+                )}
+                {h.doctorId && (
+                  <p className="text-gray-700">
+                    <strong>Provider:</strong> {h.doctorId}
+                  </p>
+                )}
+
+                {/* Treatment Details */}
+                {h.diagnosis && (
+                  <p className="text-gray-700">
+                    <strong>Diagnosis:</strong> {h.diagnosis}
+                  </p>
+                )}
+                {h.treatment && (
+                  <p className="text-gray-700">
+                    <strong>Treatment:</strong> {h.treatment}
+                  </p>
+                )}
+                {h.prescription && (
+                  <p className="text-gray-700">
+                    <strong>Prescription:</strong> {h.prescription}
+                  </p>
+                )}
+                {h.dispensedMedicines && h.dispensedMedicines.length > 0 && (
+                  <div className="text-gray-700">
+                    <strong>Dispensed Medicines:</strong>
+                    {h.dispensedMedicines.map((med, medIndex) => (
+                      <div key={medIndex} className="ml-4 mt-1">
+                        <p>
+                          <strong>Name:</strong> {med.medicineName || "N/A"}
+                        </p>
+                        <p>
+                          <strong>Quantity:</strong> {med.quantity || "N/A"}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          <strong>Dispensed At:</strong>{" "}
+                          {med.dispensedAt
+                            ? new Date(med.dispensedAt).toLocaleString()
+                            : "N/A"}
+                        </p>
+                        <p>
+                          <strong>Pharmacy ID:</strong> {med.pharmacyId || "N/A"}
+                        </p>
+                        <p>
+                          <strong>Patient ID:</strong> {med.patientId || "N/A"}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Lab Report Details */}
+                {h.labReport && (
+                  <div className="text-gray-700">
+                    <strong>Lab Report:</strong>
+                    <div className="ml-4 mt-1">
+                      {h.labReport.reportType && (
+                        <p>
+                          <strong>Type:</strong> {h.labReport.reportType}
+                        </p>
+                      )}
+                      {h.labReport.reportData && (
+                        <p>
+                          <strong>Data:</strong> {h.labReport.reportData}
+                        </p>
+                      )}
+                      {h.labReport.createdAt && (
+                        <p className="text-sm text-gray-500">
+                          <strong>Date:</strong>{" "}
+                          {new Date(h.labReport.createdAt).toLocaleString()}
+                        </p>
+                      )}
+                      {h.labReport.labId && (
+                        <p>
+                          <strong>Lab ID:</strong> {h.labReport.labId}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

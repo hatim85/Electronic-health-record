@@ -16,6 +16,7 @@ export default function MyPrescriptions() {
         setLoading(true);
         setError("");
         const res = await getMyPrescriptions();
+        console.log("API Response pres:", res);
         setPrescriptions(Array.isArray(res) ? res : []);
       } catch (err) {
         setError(`❌ ${err.error || "Failed to load prescriptions"}`);
@@ -82,19 +83,23 @@ export default function MyPrescriptions() {
                 key={i}
                 className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2"
               >
-                <p className="text-gray-700">
-                  <strong>Doctor:</strong> {p.doctorName || "N/A"}
-                </p>
-                <p className="text-gray-700">
-                  <strong>Medicine:</strong> {p.medicine || "N/A"}
-                </p>
-                <p className="text-gray-700">
-                  <strong>Dosage:</strong> {p.dosage || "N/A"}
-                </p>
-                <p className="text-sm text-gray-500">
-                  <strong>Date:</strong>{" "}
-                  {p.date ? new Date(p.date).toLocaleDateString() : "N/A"}
-                </p>
+                {p.doctorId && (
+                  <p className="text-gray-700">
+                    <strong>Doctor:</strong> {p.doctorId}
+                  </p>
+                )}
+                {(p.dispensedMedicines?.[0]?.medicineName || p.prescription) && (
+                  <p className="text-gray-700">
+                    <strong>Medicine:</strong>{" "}
+                    {p.dispensedMedicines?.[0]?.medicineName || p.prescription}
+                  </p>
+                )}
+                {p.createdAt && (
+                  <p className="text-sm text-gray-500">
+                    <strong>Date:</strong>{" "}
+                    {new Date(p.createdAt).toLocaleDateString()}
+                  </p>
+                )}
               </div>
             ))}
           </div>
