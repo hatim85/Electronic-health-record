@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       const res = await axios.post(
-        "http://localhost:3000/api/v1/auth/login",
+        `${VITE_API_URL}/api/v1/auth/login`,
         credentials
       );
       console.log("credentials: ", credentials);
