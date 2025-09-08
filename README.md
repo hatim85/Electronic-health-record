@@ -1,120 +1,174 @@
-# Electronic Health Record Blockchain Based Platfrom - Project
+# 🏥 EHR: A Blockchain-Based Electronic Health Record Platform
 
-## Tech stack
+<img width="1440" height="813" alt="ehr2" src="https://github.com/user-attachments/assets/ed8d4621-464d-4c08-86d5-3ef0cd9d15f7" />
 
-    - Hyperledger Fabric blockchain (Node SDK JavaScript)
-    - Node.js
-    - Next.js
-    - IPFS
+EHR is a **decentralized platform** designed to revolutionize the management of **Electronic Health Records (EHR)**.
+By leveraging **Hyperledger Fabric**, this project puts patients in control of their own medical data, ensuring **security, transparency, and interoperability** between healthcare stakeholders.
 
-<!-- ADD github access 
+The system uses a **permissioned blockchain** to maintain an immutable log of all health-related transactions, while **large medical files** are stored off-chain using **IPFS** for efficiency.
 
-$ eval "$(ssh-agent -s)"
-$ ssh-add ~/ssh/github -->
+---
 
-# Steps to setup project
+## 🏛️ System Architecture
 
-## Download fabric binarys and fabric sample repo
+The platform is built on a **distributed architecture** to ensure **data integrity and decentralization**.
 
-    $ ./install-fabric.sh 
+* **Hyperledger Fabric** → Provides a permissioned blockchain network. Manages identities, enforces access control policies, and stores an immutable ledger of transactions.
+* **Node.js (Fabric SDK)** → Backend API server that bridges client apps and the Hyperledger Fabric network via RESTful APIs.
+* **React.js** → Frontend framework (powered by Vite) for a fast, responsive, and interactive user interface.
+* **IPFS (InterPlanetary File System)** → Off-chain storage for large files (lab reports, MRI scans, prescriptions). Only the **IPFS CID** is stored on-chain.
+* **Docker** → Containerizes Fabric nodes and the app server for easy setup, deployment, and scalability.
 
-## To test network 
+---
 
-    $ cd /fabric-samples/test-network
-    $ ./network.sh up
+## ✨ Core Features
 
-    $ docker ps    // to check running container or check in docker desktop
-    
-    $ ./network.sh down     // to down network
+### 👩‍⚕️ For Patients
 
-## to run network with ca and create mychannel 
+* **Complete Data Ownership** → View full treatment history, prescriptions, and lab reports.
+* **Access Control** → Grant/revoke access for doctors or institutions.
+* **Insurance Claims** → Request and track claims directly.
+* **Data Monetization** → Earn rewards/tokens for securely sharing anonymized data with researchers.
 
-    $ cd fabric-samples/test-network
-    
-    Create network with ca cert: 
-    
-    $ ./network.sh up createChannel -ca -s couchdb
-    
-### Chain code deployment command
+### 🏥 For Healthcare Providers
 
-- Deploy chain code
-	    
-    $ ./network.sh deployCC -ccn ehrChainCode -ccp ../asset-transfer-basic/chaincode-javascript/ -ccl javascript
+* **Doctor Management** → Hospitals can create/manage doctor profiles.
+* **Patient Records** → Doctors can update/manage patient health records (with consent).
+* **Lab Integration** → Labs receive prescriptions and upload reports directly (via IPFS).
+* **Pharma Integration** → Pharmacies view prescriptions, dispense medicine, and manage stock.
 
-    *Down Network - only if you want to stop network or close system
-	
-    $ ./network.sh down
+### 🏛️ For Institutions
 
-### Register Admin
+* **Consent-Based Research** → Researchers access anonymized patient data (with explicit consent).
+* **Streamlined Claims** → Insurers receive, review, and approve claims transparently.
 
-    $ cd server-node-sdk/
-    $ node cert-script/registerOrg1Admin.js
-    $ node cert-script/registerOrg2Admin.js
+---
 
-### onboard script
-    
-    $ node cert-script/onboardHospital01.js 
-    $ node cert-script/onboardDoctor.js
+## 🎭 Roles and Permissions
 
-    $ node cert-script/onboardInsuranceCompany.js 
-    $ node cert-script/onboardInsuranceAgent.js
+The network is governed by **strict roles and permissions** to ensure secure access.
 
-    *** you can use script to call chaincode and perform read and write opration on blockchain ledger. - optional *** 
+| **Actor**             | **Organization** | **Key Permissions**                                                                             |
+| --------------------- | ---------------- | ----------------------------------------------------------------------------------------------- |
+| **SuperAdmin**        | Org1             | Manage Org1 policies, onboard hospitals, doctors, patients, diagnostic centers, and pharmacies. |
+| **Patient**           | Org1             | Full read/write access to their own records.                                                    |
+| **Hospital**          | Org1             | Manage doctor profiles and hospital data.                                                       |
+| **Doctor**            | Org1             | Read/write patient data (with consent).                                                         |
+| **Diagnostic Center** | Org1             | Read/write diagnostic data.                                                                     |
+| **Pharmacy**          | Org1             | Read prescriptions, update medicine stock.                                                      |
+| **ResearchAdmin**     | Org2             | Manage Org2, onboard researchers.                                                               |
+| **Researcher**        | Org2             | Read-only access (with consent).                                                                |
+| **InsuranceAdmin**    | Org2             | Manage Org2, onboard insurers/agents.                                                           |
+| **Insurance Company** | Org2             | Manage patient insurance claims.                                                                |
+| **InsuranceAgent**    | Org2             | Submit and manage insurance claims.                                                             |
 
-### start node server to use api
+---
 
-    $ npm run dev
+## 🚀 Getting Started
 
-### API List
-    
-    1. registerPatient - as Patient
-    2. loginPatient - as Patient
-    3. grantAccess - to doctor from Patient
-    4. addRecord - of Patient
-    5. getRecordById - of Patient 
-    6. getAllRecordByPatienId - filter record by patient
-    7. fetchLedger - fetch all transaction only admin can fetch.
+### ✅ Prerequisites
 
-## chaincode logic
+Ensure you have installed:
 
-    - lets first understand the actors in our chaincode
+* **Docker & Docker Compose**
+* **Node.js (v16.x)**
+* **Go (Golang)**
+* **Git**
 
-    1. Goverment - network owner
-    2. Hospital - Network orgination 
-    3. Practicing physician / Doctor - member of hospital
-    4. Diagnostics center - org OR peer of hospital
-    5. Pharmacies - Org OR peer of hospital
-    6. Researchers / R&D - org
-    7. Insurance companies - org
-    8. Patient - end user
+---
 
+### 🔧 Installation & Setup
 
-   ## now lets see there read write access
+1. **Clone the Repository**
 
-        1. Goverment - network owner - admin access
-        2. Hospital - Network orgination - Read/Write (doctor data)
-        3. Practicing physician/Doctor - Read/Write (Patient data w.r.t to hospital)
-        4. Diagnostics center - Read/Write (Patient records w.r.t to diagnostics center)
-        5. Pharmacies - Read/Write (Patient prescriptions w.r.t to pharma center)
-        6. Researchers / R&D - Read data of hospital conect, pateint based on consent. 
-        7. Insurance companies - Read/Write (Patient claims)
-        8. Patient - Read/Write (All generated patient data)
+   ```bash
+   git clone https://github.com/hatim85/Electronic-health-record.git
+   cd Electronic-health-record
+   ```
 
-  ## object strucutre in db.
+2. **Download Fabric Binaries & Samples**
 
-  [ "recordType"="hospital", "createdBy"="hospitalId", data={ name="ABC Hosptial", address="acb location"  } ]
+   ```bash
+   ./install-fabric.sh
+   ```
 
-  [ "recordType"="physician", "createdBy"="physicianID", data={ name="ABC Hosptial", address="acb location"  } ]
+3. **Start the Blockchain Network**
 
+   ```bash
+   cd fabric-samples/test-network/
+   ./network.sh up createChannel -ca -s couchdb
+   ```
 
-POST /insurance/register → Register insurance agent
+   *Note: Use `-ca` for Fabric CAs instead of cryptogen (requires more resources).*
 
-POST /insurance/issue → Agent issues policy to patient
+4. **Deploy the Chaincode**
 
-POST /patient/requestClaim → Patient submits a claim
+   ```bash
+   ./network.sh deployCC -ccn ehrChainCode -ccp ../asset-transfer-basic/chaincode-javascript/ -ccl javascript
+   ```
 
-GET /insurance/claims/:insuranceId → Agent checks claims
+5. **Setup Admins & Users**
 
-POST /insurance/approveClaim → Agent approves claim
+   ```bash
+   cd ../../server-node-sdk/
 
-GET /patient/rewards/:patientId → Patient optionally checks rewards
+   # Register Admins
+   node cert-script/registerOrg1Admin.js
+   node cert-script/registerOrg2Admin.js
+   node cert-script/onboardResearchAdmin.js
+   ```
+
+6. **Start Backend Server**
+
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+   → Runs at **[http://localhost:3000](http://localhost:3000)**
+
+7. **Start Frontend Application**
+
+   ```bash
+   cd ../frontend/
+   npm install
+   npm run dev
+   ```
+
+   → Accessible at **[http://localhost:5173](http://localhost:5173)**
+
+---
+
+## 🔗 API Endpoints
+
+Some key endpoints include:
+
+* `POST /api/v1/hospital/patient` → Register a new patient.
+* `POST /api/v1/auth/login` → Authenticate a patient.
+* `POST /api/v1/doctor/patientRecord` → Add a medical record.
+* `GET /api/v1/patient/history/:userId` → Fetch patient history.
+* `POST /api/v1/patient/grantAccess` → Patient grants doctor access.
+* `POST /api/v1/patient/requestClaim` → Submit an insurance claim.
+* `POST /api/v1/insurance/approveClaim` → Insurer approves a claim.
+* and more
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! 🎉
+
+1. Fork the project
+2. Create your feature branch → `git checkout -b feature/AmazingFeature`
+3. Commit changes → `git commit -m 'Add some AmazingFeature'`
+4. Push branch → `git push origin feature/AmazingFeature`
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License**.
+See the [`LICENSE`](LICENSE) file for details.
+
+---
