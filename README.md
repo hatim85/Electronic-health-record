@@ -1,6 +1,6 @@
 # 🏥 EHR: A Blockchain-Based Electronic Health Record Platform
 
-<img width="1440" height="813" alt="ehr2" src="https://github.com/user-attachments/assets/ed8d4621-464d-4c08-86d5-3ef0cd9d15f7" />
+<img width="1440" height="810" alt="Screenshot 2025-09-11 at 8 40 47 PM" src="https://github.com/user-attachments/assets/99306802-f0ef-463f-9e7f-eb345e8d86ce" />
 
 EHR is a **decentralized platform** designed to revolutionize the management of **Electronic Health Records (EHR)**.
 By leveraging **Hyperledger Fabric**, this project puts patients in control of their own medical data, ensuring **security, transparency, and interoperability** between healthcare stakeholders.
