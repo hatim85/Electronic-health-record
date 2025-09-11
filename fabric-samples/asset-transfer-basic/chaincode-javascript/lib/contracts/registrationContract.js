@@ -1,46 +1,6 @@
 const { _stringify } = require('../utils/helper.js');
 const { getCallerAttributes } = require('../utils/identity.js');
 
-// async function registerPatient(ctx, args) {
-//     args = typeof args === 'string' ? JSON.parse(args) : args;
-
-//     // Validate
-//     if (!args.patientId || !args.name || !args.dob) {
-//         throw new Error('Missing required fields: patientId, name, dob');
-//     }
-
-//     // Key
-//     const patientKey = ctx.stub.createCompositeKey('patient', [args.patientId]);
-//     const exists = await ctx.stub.getState(patientKey);
-//     if (exists && exists.length > 0) {
-//         throw new Error(`Patient ${args.patientId} already exists`);
-//     }
-
-//     // Create patient object with docType and createdBy
-//     // createdBy: use caller uuid if provided; otherwise allow hospital creation
-//     const caller = getCallerAttributes(ctx);
-
-//     const patient = {
-//         docType: 'patient',
-//         createdBy: caller.uuid,
-//         hospitalId: args.hospitalId,
-//         patientId: args.patientId,
-//         name: args.name,
-//         dob: args.dob,
-//         city: args.city || '',
-//         authorizedEntities: [], // list of doctorIds
-//         createdAt: new Date(
-//             ctx.stub.getTxTimestamp().seconds.low * 1000
-//         ).toISOString(),
-//     };
-
-//     await ctx.stub.putState(patientKey, Buffer.from(_stringify(patient)));
-//     return _stringify({
-//         success: true,
-//         message: `Patient ${args.patientId} registered`,
-//     });
-// }
-
 async function registerPatient(ctx, args) {
     args = typeof args === 'string' ? JSON.parse(args) : args;
 
@@ -86,70 +46,50 @@ async function registerPatient(ctx, args) {
     });
 }
 
-
-// async function registerHospital(ctx, hospitalDataJson) {
-//     const hospital = JSON.parse(hospitalDataJson);
-//     console.log('Registering hospital:', hospital);
-
-//     if (!hospital.hospitalId || !hospital.hospitalName || !hospital.city) {
-//         throw new Error(
-//             'Missing required fields: hospitalId, hospitalName, city'
-//         );
-//     }
-
-//     const exists = await ctx.stub.getState(hospital.hospitalId);
-//     if (exists && exists.length > 0) {
-//         throw new Error(`Hospital ${hospital.hospitalId} already exists`);
-//     }
-
-//     hospital.docType = 'hospital';
-
-//     await ctx.stub.putState(
-//         hospital.hospitalId,
-//         Buffer.from(_stringify(hospital))
-//     );
-//     return JSON.stringify(hospital);
-// }
-
 async function registerHospital(ctx, args) {
-    args = typeof args === 'string' ? JSON.parse(args) : args;
+    try {
+        args = typeof args === 'string' ? JSON.parse(args) : args;
 
-    const caller = getCallerAttributes(ctx);
-    const orgMSP = ctx.clientIdentity.getMSPID();
+        const caller = getCallerAttributes(ctx);
+        const orgMSP = ctx.clientIdentity.getMSPID();
 
-    // ✅ Access control: Only hospital admins from Org1 can register hospitals
-    if (orgMSP !== 'Org1MSP' || caller.role !== 'superAdmin') {
-        throw new Error('Only hospital admins (Org1) can register hospitals');
+        // ✅ Access control: Only hospital admins from Org1 can register hospitals
+        if (orgMSP !== 'Org1MSP' || caller.role !== 'superAdmin') {
+            throw new Error('Only hospital admins (Org1) can register hospitals');
+        }
+
+        // ✅ Validation
+        if (!args.hospitalId || !args.hospitalName || !args.city) {
+            throw new Error('Missing required fields: hospitalId, hospitalName, city');
+        }
+
+        // ✅ Consistent key format (composite key)
+        const hospitalKey = ctx.stub.createCompositeKey('hospital', [args.hospitalId]);
+        const exists = await ctx.stub.getState(hospitalKey);
+        if (exists && exists.length > 0) {
+            throw new Error(`Hospital ${args.hospitalId} already exists`);
+        }
+
+        // ✅ Record
+        const hospitalRecord = {
+            docType: 'hospital',
+            createdBy: caller.uuid,
+            hospitalId: args.hospitalId,
+            hospitalName: args.hospitalName,
+            city: args.city,
+            createdAt: new Date(ctx.stub.getTxTimestamp().seconds.low * 1000).toISOString(),
+            status: 'ACTIVE',
+        };
+
+        await ctx.stub.putState(hospitalKey, Buffer.from(_stringify(hospitalRecord)));
+        return _stringify({
+            success: true,
+            message: `Hospital ${args.hospitalId} registered successfully`,
+        });
+    } catch (error) {
+        console.error('Error in registerHospital:', error.message);
+        return _stringify({ success: false, error: error.message });
     }
-
-    // ✅ Validation
-    if (!args.hospitalId || !args.hospitalName || !args.city) {
-        throw new Error('Missing required fields: hospitalId, hospitalName, city');
-    }
-
-    // ✅ Consistent key format (composite key)
-    const hospitalKey = ctx.stub.createCompositeKey('hospital', [args.hospitalId]);
-    const exists = await ctx.stub.getState(hospitalKey);
-    if (exists && exists.length > 0) {
-        throw new Error(`Hospital ${args.hospitalId} already exists`);
-    }
-
-    // ✅ Record
-    const hospitalRecord = {
-        docType: 'hospital',
-        createdBy: caller.uuid,
-        hospitalId: args.hospitalId,
-        hospitalName: args.hospitalName,
-        city: args.city,
-        createdAt: new Date(ctx.stub.getTxTimestamp().seconds.low * 1000).toISOString(),
-        status: 'ACTIVE',
-    };
-
-    await ctx.stub.putState(hospitalKey, Buffer.from(_stringify(hospitalRecord)));
-    return _stringify({
-        success: true,
-        message: `Hospital ${args.hospitalId} registered successfully`,
-    });
 }
 
 

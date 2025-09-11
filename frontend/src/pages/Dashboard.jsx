@@ -5,6 +5,7 @@ import { Lock, Users, Database, Shield, Stethoscope, FlaskConical } from "lucide
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, getLoggedInUserRole } = useAuth();
+  console.log("user: ", user);
 
   // Determine navigation path based on user role
   const getDashboardPath = () => {
@@ -36,7 +37,7 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center">
             <Shield className="w-8 h-8 text-blue-600 mr-2" />
-            <h1 className="text-2xl font-bold text-gray-800">EHR Blockchain</h1>
+            <h1 className="text-2xl font-bold text-gray-800">EHR</h1>
           </div>
           <button
             onClick={() => navigate(getDashboardPath())}
@@ -50,12 +51,13 @@ export default function Dashboard() {
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-20 px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
         <h1 className="text-4xl sm:text-5xl font-bold mb-6">
-          Welcome to EHR Blockchain System
+          Welcome to EHR System
         </h1>
         <p className="text-lg sm:text-xl max-w-2xl mb-8">
-          Securely manage and share Electronic Health Records using blockchain technology. 
-          Empower doctors, patients, hospitals, insurance agents, diagnostics, and researchers 
-          with a trusted, decentralized platform.
+          Securely manage and share Electronic Health Records using
+          <span className="font-semibold"> Hyperledger</span> technology.
+          Empower doctors, patients, hospitals, insurance agents, diagnostics,
+          and researchers with a trusted, decentralized platform.
         </p>
         <button
           onClick={() => navigate(getDashboardPath())}
@@ -69,7 +71,7 @@ export default function Dashboard() {
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-100">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl font-bold text-gray-800 text-center mb-12">
-            Why Choose EHR Blockchain?
+            Why Choose EHR?
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
@@ -85,8 +87,8 @@ export default function Dashboard() {
               },
               {
                 icon: Database,
-                title: "Decentralized Storage",
-                description: "Distributed ledger ensures data availability and integrity across the network.",
+                title: "Powered by Hyperledger",
+                description: "Built on Hyperledger, ensuring enterprise-grade security, scalability, and interoperability."
               },
               {
                 icon: Stethoscope,
@@ -141,9 +143,9 @@ export default function Dashboard() {
       <footer className="bg-gray-800 text-white py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center">
           <div className="mb-4 sm:mb-0">
-            <h3 className="text-lg font-semibold">EHR Blockchain System</h3>
+            <h3 className="text-lg font-semibold">EHR System</h3>
             <p className="text-sm text-gray-400">
-              © 2025 EHR Blockchain. All rights reserved.
+              © 2025 EHR. All rights reserved.
             </p>
           </div>
           <div className="flex space-x-6">

@@ -69,49 +69,6 @@ async function grantAccess(ctx, args) {
     });
 }
 
-// async function createClaim(ctx, args) {
-//     args = typeof args === 'string' ? JSON.parse(args) : args;
-//     const { role, uuid } = getCallerAttributes(ctx);
-
-//     if (role !== 'patient') throw new Error('Only patients can create claims');
-
-//     if (!args.policyNumber || !args.amount || !args.reason) {
-//         throw new Error('policyNumber, amount and reason are required');
-//     }
-
-//     // Fetch the insurance policy
-//     const insuranceKey = ctx.stub.createCompositeKey('insurance', [
-//         args.policyNumber,
-//     ]);
-//     const insuranceBytes = await ctx.stub.getState(insuranceKey);
-//     if (!insuranceBytes || insuranceBytes.length === 0) {
-//         throw new Error(
-//             `Insurance with policyNumber ${args.policyNumber} not found`
-//         );
-//     }
-
-//     const insurance = JSON.parse(insuranceBytes.toString());
-
-//     const claimId = _genId(ctx, 'claim');
-//     const claimKey = ctx.stub.createCompositeKey('claim', [claimId]);
-
-//     const claim = {
-//         docType: 'claim',
-//         claimId,
-//         policyNumber: args.policyNumber,
-//         patientId: uuid,
-//         insuranceId: insurance.insuranceId,
-//         insuranceCompany: insurance.insuranceCompany,
-//         amount: args.amount,
-//         reason: args.reason,
-//         status: 'PENDING',
-//         requestedAt: new Date().toISOString(),
-//     };
-
-//     await ctx.stub.putState(claimKey, Buffer.from(_stringify(claim)));
-//     return _stringify({ success: true, message: 'Claim created', claimId });
-// }
-
 async function createClaim(ctx, args) {
     args = typeof args === 'string' ? JSON.parse(args) : args;
     const { role, uuid } = getCallerAttributes(ctx);

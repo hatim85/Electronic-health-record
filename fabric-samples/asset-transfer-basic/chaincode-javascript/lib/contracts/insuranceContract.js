@@ -59,33 +59,6 @@ async function issueInsurance(ctx, args) {
     });
 }
 
-// async function approveClaim(ctx, args) {
-//     args = typeof args === 'string' ? JSON.parse(args) : args;
-//     const { role } = getCallerAttributes(ctx);
-
-//     // Only admin can approve claims
-//     if (role !== 'insuranceAdmin')
-//         throw new Error('Only insurance admin can approve claims');
-
-//     if (!args.claimId) throw new Error('claimId required');
-
-//     const claimKey = ctx.stub.createCompositeKey('claim', [args.claimId]);
-//     const claimBytes = await ctx.stub.getState(claimKey);
-//     if (!claimBytes || claimBytes.length === 0)
-//         throw new Error(`Claim ${args.claimId} not found`);
-
-//     const claim = JSON.parse(claimBytes.toString());
-//     claim.status = 'APPROVED';
-//     claim.approvedAt = new Date().toISOString();
-
-//     await ctx.stub.putState(claimKey, Buffer.from(_stringify(claim)));
-//     return _stringify({
-//         success: true,
-//         message: 'Claim approved',
-//         claimId: args.claimId,
-//     });
-// }
-
 async function approveClaim(ctx, args) {
     args = typeof args === 'string' ? JSON.parse(args) : args;
     const { role } = getCallerAttributes(ctx);

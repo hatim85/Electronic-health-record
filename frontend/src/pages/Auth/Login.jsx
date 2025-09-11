@@ -38,6 +38,11 @@ export default function Login() {
       const user = await login({ userId });
       console.log("user: ", user);
 
+      if (!user.success) {
+        setError(user.message);
+        return;
+      }
+
       // Role-based routing
       const roleRoutes = {
         superAdmin: "/hospital/dashboard",
@@ -56,7 +61,8 @@ export default function Login() {
       const redirectPath = roleRoutes[user.user.userRole] || "/";
       navigate(redirectPath);
     } catch (err) {
-      setError(err.error || "Failed to login");
+      console.error("Login error:", err);
+      setError(err.error.message || "Failed to login");
     } finally {
       setLoading(false);
     }
@@ -91,16 +97,14 @@ export default function Login() {
               name="userId"
               value={userId}
               onChange={handleChange}
-              className={`peer w-full px-4 py-3 border ${
-                error ? "border-red-500" : "border-gray-300"
-              } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-700 placeholder-transparent`}
+              className={`peer w-full px-4 py-3 border ${error ? "border-red-500" : "border-gray-300"
+                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-700 placeholder-transparent`}
               placeholder="User ID"
               required
             />
             <label
-              className={`absolute left-4 top-3 text-gray-500 text-sm transition-all transform peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-[-8px] peer-focus:text-sm peer-focus:text-blue-600 bg-white px-1 ${
-                userId ? "top-[-8px] text-sm text-blue-600" : ""
-              }`}
+              className={`absolute left-4 top-3 text-gray-500 text-sm transition-all transform peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-400 peer-focus:top-[-8px] peer-focus:text-sm peer-focus:text-blue-600 bg-white px-1 ${userId ? "top-[-8px] text-sm text-blue-600" : ""
+                }`}
             >
               User ID
             </label>

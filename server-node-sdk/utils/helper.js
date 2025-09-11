@@ -5,27 +5,27 @@ const path = require("path");
 const FabricCAServices = require("fabric-ca-client");
 const { Wallets, Gateway } = require("fabric-network");
 const PinataWallet = require('./pinataWallet.js'); // Import the new wallet handler
-const forge=require('node-forge');
+const forge = require('node-forge');
 
 // Role → Org mapping (remains the same)
 const roleToOrg = {
-  superAdmin: "Org1",
-  hospital: "Org1",
-  diagnostics: "Org1",
-  doctor: "Org1",
-  pharmacy: "Org1",
-  patient: "Org1",
-  researchAdmin: "Org2",
-  researcher: "Org2",
-  insuranceAdmin: "Org2",
-  insuranceAgent: "Org2",
-  insuranceCompany: "Org2"
+    superAdmin: "Org1",
+    hospital: "Org1",
+    diagnostics: "Org1",
+    doctor: "Org1",
+    pharmacy: "Org1",
+    patient: "Org1",
+    researchAdmin: "Org2",
+    researcher: "Org2",
+    insuranceAdmin: "Org2",
+    insuranceAgent: "Org2",
+    insuranceCompany: "Org2"
 };
 
 // Org → Admin identity mapping (remains the same)
 const orgToAdminID = {
-  Org1: "superAdmin",
-  Org2: "researchAdmin",
+    Org1: "superAdmin",
+    Org2: "researchAdmin",
 };
 
 /**
@@ -45,7 +45,7 @@ const registerUser = async (enrollId, userID, userRole, args) => {
     const caOrg = ccp.organizations[orgID].certificateAuthorities[0];
     const caURL = ccp.certificateAuthorities[caOrg].url;
     const ca = new FabricCAServices(caURL);
-    
+
     // Check if identity already exists on Pinata to avoid re-registering
     const existingIdentityOnPinata = await PinataWallet.retrieveIdentity(userID);
     if (existingIdentityOnPinata) {
@@ -54,9 +54,9 @@ const registerUser = async (enrollId, userID, userRole, args) => {
         // --- MODIFICATION START ---
         // Instead of a FileSystemWallet, we now fetch the admin from Pinata
         // and load it into a temporary in-memory wallet.
-        
+
         const adminID = enrollId || orgToAdminID[orgID];
-        
+
         // 1. Retrieve the required admin identity from Pinata
         const adminIdentity = await PinataWallet.retrieveIdentity(adminID);
         if (!adminIdentity) {
@@ -69,7 +69,7 @@ const registerUser = async (enrollId, userID, userRole, args) => {
 
         const provider = tempWallet.getProviderRegistry().getProvider(adminIdentity.type);
         const adminUser = await provider.getUserContext(adminIdentity, adminID);
-        
+
         // --- MODIFICATION END ---
 
         console.log(`Using admin identity: ${adminID} (${orgID}) from Pinata`);
@@ -82,6 +82,9 @@ const registerUser = async (enrollId, userID, userRole, args) => {
             attrs: [
                 { name: "role", value: userRole, ecert: true },
                 { name: "uuid", value: userID, ecert: true },
+                ...(userRole === "hospital"
+                    ? [{ name: "hf.Revoker", value: "true", ecert: true }]
+                    : [])
             ],
         }, adminUser); // Use the admin user context from the in-memory wallet
 
@@ -99,7 +102,7 @@ const registerUser = async (enrollId, userID, userRole, args) => {
             mspId: orgMSP,
             type: "X.509",
         };
-        await PinataWallet.storeIdentity(userID, x509Identity,userRole);
+        await PinataWallet.storeIdentity(userID, x509Identity, userRole);
     }
 
     // --- Chaincode Submission Logic ---
@@ -116,7 +119,7 @@ const registerUser = async (enrollId, userID, userRole, args) => {
     } else {
         submitterIdentityName = userID;
     }
-    
+
     // Retrieve the submitter's identity from Pinata ONLY
     const submitterIdentity = await PinataWallet.retrieveIdentity(submitterIdentityName);
     console.log(`Using submitter identity: ${submitterIdentityName} (${orgID}) from Pinata`);
@@ -125,7 +128,7 @@ const registerUser = async (enrollId, userID, userRole, args) => {
     }
 
     console.log(`➡️ Submitting chaincode as ${submitterIdentityName} for role=${userRole} (org=${orgID})`);
-    
+
     const gateway = new Gateway();
     await gateway.connect(ccp, {
         identity: submitterIdentity, // Use the identity object directly
@@ -150,7 +153,7 @@ const registerUser = async (enrollId, userID, userRole, args) => {
             buffer = await contract.submitTransaction("createDiagnosticsCenter", JSON.stringify({ diagnosticsId: userID, ...args }));
             break;
         case "pharmacy":
-             buffer = await contract.submitTransaction("createPharmacy", JSON.stringify({ pharmacyId: userID, ...args }));
+            buffer = await contract.submitTransaction("createPharmacy", JSON.stringify({ pharmacyId: userID, ...args }));
             break;
         case "researcher":
             buffer = await contract.submitTransaction("onboardResearcher", JSON.stringify({ researcherId: userID, ...args }));
@@ -177,31 +180,15 @@ const registerUser = async (enrollId, userID, userRole, args) => {
     };
 };
 
-// const login = async (userID) => {
-//     console.log(`Logging in user ${userID}...`);
-//     // Check if the user's identity exists on Pinata
-//     const identity = await PinataWallet.retrieveIdentity(userID);
-//     console.log(`Retrieved identity for ${userID} from Pinata:`, identity);
-
-//     if (!identity) {
-//         return { statusCode: 404, message: `Identity for ${userID} not found.` };
-//     }
-
-//     return {
-//         statusCode: 200,
-//         userID,
-//         message: `Login successful for ${userID}`,
-//     };
-// };
-
 const login = async (userID) => {
+    try {
     console.log(`Logging in user ${userID}...`);
 
     // Step 1: Retrieve identity from Pinata
     const identity = await PinataWallet.retrieveIdentity(userID);
 
     if (!identity) {
-        return { statusCode: 404, message: `Identity for ${userID} not found.` };
+        throw new Error(`Identity for ${userID} not found.`);
     }
 
     console.log(`✅ Successfully retrieved identity for ${userID} from Pinata.`);
@@ -209,7 +196,7 @@ const login = async (userID) => {
     // Step 2: Verify userID and get role
     const storedUserID = identity.userID || userID;
     const userRole = identity.role || 'unknown';
-    console.log("identity: ",identity);
+    console.log("identity: ", identity);
     if (storedUserID !== userID) {
         console.warn(`⚠️ Requested userID (${userID}) does not match stored userID (${storedUserID})`);
     }
@@ -225,6 +212,10 @@ const login = async (userID) => {
         userRole,
         message: `Login successful for ${userID}`,
     };
+    } catch (error) {
+        console.error("Login error:", error);
+        return { statusCode: 500, message: `Login failed for ${userID}: ${error.message}` };
+    }
 };
 
 

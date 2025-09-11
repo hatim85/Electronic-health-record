@@ -13,6 +13,11 @@ const ManageDoctors = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // modal states
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
 
   // Fetch doctors on mount
   useEffect(() => {
@@ -35,24 +40,42 @@ const ManageDoctors = () => {
     fetchDoctors();
   }, [user]);
 
-  // Handle doctor deletion with confirmation
-  const handleDelete = async (doctorId, hospitalId, doctorName) => {
-    if (!window.confirm(`Are you sure you want to delete ${doctorName}?`)) return;
+  // Trigger modal open
+  const confirmDelete = (doctor) => {
+    setSelectedDoctor(doctor);
+    setShowConfirm(true);
+  };
 
+
+  // inside handleDelete
+  const handleDelete = async () => {
+    if (!selectedDoctor) return;
+
+    setDeleting(true); // start loading
     try {
-      await deleteDoctor({ doctorId, hospitalId });
-      setDoctors((prev) => prev.filter((d) => d.doctorId !== doctorId));
+      await deleteDoctor({
+        doctorId: selectedDoctor.doctorId,
+        hospitalId: selectedDoctor.hospitalId,
+      });
+      setDoctors((prev) =>
+        prev.filter((d) => d.doctorId !== selectedDoctor.doctorId)
+      );
       setMessage({
         type: "success",
-        text: `✅ Doctor ${doctorName} deleted successfully!`,
+        text: `✅ Doctor ${selectedDoctor.name} deleted successfully!`,
       });
     } catch (err) {
       setMessage({
         type: "error",
         text: err.error || "Failed to delete doctor",
       });
+    } finally {
+      setDeleting(false); // stop loading
+      setShowConfirm(false);
+      setSelectedDoctor(null);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 sm:p-6">
@@ -78,9 +101,8 @@ const ManageDoctors = () => {
         {/* Message */}
         {message && (
           <p
-            className={`mb-6 text-center ${
-              message.type === "success" ? "text-green-600" : "text-red-500"
-            }`}
+            className={`mb-6 text-center ${message.type === "success" ? "text-green-600" : "text-red-500"
+              }`}
           >
             {message.text}
           </p>
@@ -132,7 +154,7 @@ const ManageDoctors = () => {
                   </p>
                 </div>
                 <button
-                  onClick={() => handleDelete(doc.doctorId, doc.hospitalId, doc.name)}
+                  onClick={() => confirmDelete(doc)}
                   className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition flex items-center"
                 >
                   <Trash2 className="w-5 h-5 mr-2" />
@@ -143,6 +165,60 @@ const ManageDoctors = () => {
           </div>
         )}
       </div>
+
+      {/* Confirm Delete Modal */}
+      {showConfirm && selectedDoctor && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50 z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm text-center">
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              Delete Doctor
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete Dr.{" "}
+              <span className="font-bold">{selectedDoctor.name}</span>?
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => setShowConfirm(false)}
+                disabled={deleting}
+                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white transition flex items-center justify-center disabled:opacity-50"
+              >
+                {deleting ? (
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
+                  </svg>
+                ) : (
+                  "OK"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -167,7 +167,7 @@ router.delete('/doctor/:doctorId', async (req, res) => {
 
         if (chaincodeRes && chaincodeRes.success) {
             // Step 2: Delete wallet + revoke identity
-            await deleteIdentity(doctorId);
+            await deleteIdentity(doctorId,userRole,userId);
 
             return res.json({
                 message: 'Doctor profile deleted successfully (chaincode + CA + wallet)',

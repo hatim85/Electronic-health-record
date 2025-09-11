@@ -17,28 +17,38 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // Login function
-  const login = async (credentials) => {
-    try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/v1/auth/login`,
-        credentials
-      );
-      console.log("credentials: ", credentials);
-      // Map response into frontend format
-      const loggedInUser = res.data;
+const login = async (credentials) => {
+  try {
+    const res = await axios.post(
+      `${import.meta.env.VITE_API_URL}/api/v1/auth/login`,
+      credentials
+    );
 
-      setUser(loggedInUser);
-      localStorage.setItem("ehr-user", JSON.stringify(loggedInUser));
-      console.log("Login successful:", loggedInUser);
-      return { success: true, user: loggedInUser };
-    } catch (err) {
-      console.error("Login failed", err);
+    const loggedInUser = res.data;
+
+    // If backend sends failure inside JSON
+    if (!loggedInUser || loggedInUser.statusCode !== 200) {
+      console.warn("Login failed:", loggedInUser?.message);
       return {
         success: false,
-        message: err.response?.data?.error || "Login failed",
+        message: loggedInUser?.message || "Login failed",
       };
     }
-  };
+
+    // ✅ Only set user if successful
+    setUser(loggedInUser);
+    localStorage.setItem("ehr-user", JSON.stringify(loggedInUser));
+    return { success: true, user: loggedInUser };
+
+  } catch (err) {
+    console.error("Login failed", err);
+    return {
+      success: false,
+      message: err.response?.data?.error || "Login failed",
+    };
+  }
+};
+
 
 
   // Logout function

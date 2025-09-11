@@ -77,6 +77,10 @@ async function retrieveIdentity(userId) {
 
         const cid = await findCidByUserId(userId);
         console.log(`Found CID for ${userId}: ${cid}`);
+        if (cid === null) {
+            console.warn(`No identity found for userId: ${userId}`);
+            return null;
+        }
         if (!cid) return null;
 
         const gatewayUrl = `https://gateway.pinata.cloud/ipfs/${cid}`;
@@ -86,6 +90,7 @@ async function retrieveIdentity(userId) {
         const encryptedPayload = response.data;
         const decryptedJsonString = decrypt(encryptedPayload);
         const identityObject = JSON.parse(decryptedJsonString);
+        console.log("Decrypted identity object: ", identityObject);
 
         console.log(`✅ Successfully retrieved and decrypted identity for ${userId}`);
         return identityObject; // identityObject.role is now directly available
