@@ -36,7 +36,7 @@ export default function PatientDashboard() {
             Back to Home
           </button>
           <button
-            onClick={() => window.location.href = "/profile"}
+            onClick={() =>  navigate("/profile")}
             className="text-gray-600 hover:text-blue-600 transition"
             aria-label="View Profile"
           >
