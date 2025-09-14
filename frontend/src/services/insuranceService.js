@@ -11,7 +11,6 @@ export const registerInsuranceAgent = async ({
   name,
   city,
 }) => {
-  console.log("userId: ",userId," userRole: ",userRole," in service");
   try {
     const res = await api.post("/insurance/register", {
       userId: getUserId(),
@@ -90,7 +89,6 @@ export const registerInsuranceCompany = async ({
   name,
   city,
 }) => {
-  console.log("userId: ",userId," userRole: ",userRole," in service");
   try {
     const res = await api.post("/insurance/onboard", {
       userId: getUserId(),
