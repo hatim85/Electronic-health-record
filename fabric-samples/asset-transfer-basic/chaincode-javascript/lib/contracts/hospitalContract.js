@@ -6,7 +6,7 @@ async function updateDoctorProfile(ctx, args) {
     const caller = getCallerAttributes(ctx);
     const orgMSP = ctx.clientIdentity.getMSPID();
     
-    if (orgMSP !== 'Org1MSP' || caller.role !== 'hospital' || caller.role !== 'superAdmin' || caller.role !== 'doctor') {
+    if (orgMSP !== 'Org1MSP' || (caller.role !== 'hospital' && caller.role !== 'superAdmin' && caller.role !== 'doctor')) {
         throw new Error('Only hospitals, superAdmin and doctor (Org1) can update doctor profiles');
     }
 
