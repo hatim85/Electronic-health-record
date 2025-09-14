@@ -48,7 +48,8 @@ export default function RegisterInsuranceCompany() {
       setForm({ companyId: "", name: "", city: "" });
       setErrors({});
     } catch (err) {
-      setMessage(`❌ ${err.error || "Failed to register company"}`);
+      console.error("Registration error:", err);
+      setMessage(`❌ ${err.message || "Failed to register company"}`);
     } finally {
       setLoading(false);
     }
